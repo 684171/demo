@@ -7,6 +7,42 @@ const request = require('request');
 class Demo {
     constructor() {}
 
+    /**
+     * Gets store ids from Instacart api, derived from a postal code
+     */
+    getAvailableRetailServices = () =>
+        new Promise((res, rej) => {
+
+            // API parameters
+            const data = new URLSearchParams({
+                operationName: 'AvailableRetailerServices',
+                variables: JSON.stringify({
+                    "postalCode": "L1S6B8",
+                    "addressId": "398664835",
+                    "coordinates": {
+                        "latitude": 43.8542057,
+                        "longitude": -79.0536002
+                    },
+                }),
+                extensions: JSON.stringify({
+                    "persistedQuery": {
+                        "version": 1,
+                        "sha256Hash": "281e876a4bc1aedc1d369cf730d9e4141bd7339c92b9c18d5fde7783134702c5"
+                    }
+                })
+            })
+
+            request({
+                url: `https://www.instacart.ca/graphql?${data.toString()}`
+            }, (err, res) => {
+                console.error(err);
+                console.log(res.body);
+            })
+        })
+
+    /**
+     * Gets retailers given a 
+     */
     test() {
 
         const data = new URLSearchParams({
@@ -42,7 +78,7 @@ class Demo {
 const main = () => {
     const demo = new Demo();
 
-    demo.test();
+    demo.getAvailableRetailServices()
 }
 
 main();
