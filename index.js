@@ -1,10 +1,6 @@
 const request = require('request')
 const zlib = require('zlib')
 
-// operationName: AvailableRetailerServices
-// variables: {"postalCode":"L1S6B8","addressId":"398664835","coordinates":{"latitude":43.8542057,"longitude":-79.0536002}}
-// extensions: {"persistedQuery":{"version":1,"sha256Hash":"281e876a4bc1aedc1d369cf730d9e4141bd7339c92b9c18d5fde7783134702c5"}}
-
 class Demo {
     constructor() {
         this.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36'
@@ -13,7 +9,7 @@ class Demo {
     }
 
     /**
-     * Decodes brotli encoding, not automatically done so by the request library\
+     * Decodes brotli encoding, not automatically done so by the request library
      * 
      * @param {string} data - UTF-8 encoded data to be decoded
      */
