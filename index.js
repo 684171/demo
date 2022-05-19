@@ -8,6 +8,8 @@ const zlib = require('zlib')
 class Demo {
     constructor() {
         this.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36'
+
+        this.guestApiToken = undefined
     }
 
     /**
@@ -150,7 +152,7 @@ class Demo {
                         'sec-fetch-site': 'same-origin',
                         'user-agent': this.userAgent,
                         'x-client-identifier': 'web',
-                        'cookie': `__Host-instacart_sid=${this.guestApiToken}`
+                        'cookie': `__Host-instacart_sid=${this.guestApiToken}` // API auth cookie
                     },
                     encoding: null
                 }, (err, res) => {
@@ -164,9 +166,10 @@ class Demo {
                                 // Parse response body JSON
                                 const parsedJSON = JSON.parse(res.body)
 
-                                console.log(parsedJSON)
+                                // Map response to array of available retailer ids
+                                const retailerIds = parsedJSON.data.availableRetailerServices.map(service => service.retailerId)
 
-                                return resolve()
+                                return resolve(retailerIds)
                             } else throw new Error('Unexpected API response status code:', statusCode)
                         }
                     } catch (err) {
@@ -187,7 +190,9 @@ const main = async () => {
     // M5R2A9
     // 1233 Bay Street
     await demo.signupHomepageGuestUser({postalCode: 'M5R2A9', address: '1233 Bay Street'})
-    await demo.getAvailableRetailServices({postalCode: 'M5R2A9'})
+    const data = await demo.getAvailableRetailServices({postalCode: 'M5R2A9'})
+
+    console.log(data)
 }
 
 main();
