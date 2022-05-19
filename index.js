@@ -2,9 +2,15 @@ const request = require('request')
 const zlib = require('zlib')
 
 class Demo {
-    constructor() {
-        this.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36'
+    constructor({postalCode, address}) {
+        // Input defined, constant value variables
+        this.postalCode = postalCode
+        this.address = address
 
+        // Class constants
+        this.USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36'
+        
+        // Class defined, dynamic value variables
         this.guestApiToken = undefined
     }
 
@@ -30,20 +36,16 @@ class Demo {
 
     /**
      * Signs up a homepage guest user
-     * 
-     * @param {Object} args
-     * @param {string} args.postalCode - Postal code to sign up user
-     * @param {string} args.address - Address to sign up guest user
      */
-    signupHomepageGuestUser = ({postalCode, address}) =>
+    signupHomepageGuestUser = () =>
         new Promise((resolve, reject) => {
             try {
                 // API parameters
                 const data = {
                     operationName: "HomepageGuestUser",
                     variables: {
-                        "postalCode": postalCode,
-                        "streetAddress": address
+                        "postalCode": this.postalCode,
+                        "streetAddress": this.address
                     },
                     extensions: {
                         "persistedQuery": {
@@ -72,7 +74,7 @@ class Demo {
                         'sec-fetch-dest': 'empty',
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-site': 'same-origin',
-                        'user-agent': this.userAgent,
+                        'user-agent': this.USER_AGENT,
                         'x-client-identifier': 'web'
                     },
                     body: JSON.stringify(data),
@@ -107,18 +109,15 @@ class Demo {
 
     /**
      * Gets available store ids from Instacart API, used to derive products from available stores
-     * 
-     * @param {Object} args
-     * @param {string} args.postalCode - Postal code to get available store ids
      */
-    getAvailableRetailServices = ({postalCode}) =>
+    getAvailableRetailServices = () =>
         new Promise((resolve, reject) => {
             try {
                 // API parameters
                 const data = new URLSearchParams({
                     operationName: "AvailableRetailerServices",
                     variables: JSON.stringify({
-                        "postalCode": postalCode,
+                        "postalCode": this.postalCode,
                     }),
                     extensions: JSON.stringify({
                         "persistedQuery": {
@@ -146,7 +145,7 @@ class Demo {
                         'sec-fetch-dest': 'empty',
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-site': 'same-origin',
-                        'user-agent': this.userAgent,
+                        'user-agent': this.USER_AGENT,
                         'x-client-identifier': 'web',
                         'cookie': `__Host-instacart_sid=${this.guestApiToken}` // API auth cookie
                     },
@@ -181,12 +180,12 @@ class Demo {
 }
 
 const main = async () => {
-    const demo = new Demo();
+    const demo = new Demo({postalCode: 'M5R2A9', address: '1233 Bay Street'});
 
     // M5R2A9
     // 1233 Bay Street
-    await demo.signupHomepageGuestUser({postalCode: 'M5R2A9', address: '1233 Bay Street'})
-    const data = await demo.getAvailableRetailServices({postalCode: 'M5R2A9'})
+    await demo.signupHomepageGuestUser()
+    const data = await demo.getAvailableRetailServices()
 
     console.log(data)
 }
