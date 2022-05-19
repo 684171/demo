@@ -1,84 +1,193 @@
-const request = require('request');
+const request = require('request')
+const zlib = require('zlib')
 
 // operationName: AvailableRetailerServices
 // variables: {"postalCode":"L1S6B8","addressId":"398664835","coordinates":{"latitude":43.8542057,"longitude":-79.0536002}}
 // extensions: {"persistedQuery":{"version":1,"sha256Hash":"281e876a4bc1aedc1d369cf730d9e4141bd7339c92b9c18d5fde7783134702c5"}}
 
 class Demo {
-    constructor() {}
+    constructor() {
+        this.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36'
+    }
 
     /**
-     * Gets store ids from Instacart api, derived from a postal code
+     * Decodes brotli encoding, not automatically done so by the request library\
+     * 
+     * @param {string} data - UTF-8 encoded data to be decoded
      */
-    getAvailableRetailServices = () =>
-        new Promise((res, rej) => {
+    decodeBrotliEncoding = (input) => {
+        try {  
+            // Convert data to utf-8
+            const data = Buffer.from(input, 'utf-8')
 
-            // API parameters
-            const data = new URLSearchParams({
-                operationName: 'AvailableRetailerServices',
-                variables: JSON.stringify({
-                    "postalCode": "L1S6B8",
-                    "addressId": "398664835",
-                    "coordinates": {
-                        "latitude": 43.8542057,
-                        "longitude": -79.0536002
+            // Use zlib to decompress brotli
+            const decoded = zlib.brotliDecompressSync(data)
+
+            // Convert and return decoded buffer
+            return decoded.toString('utf-8')
+        } catch (err) {
+            return err
+        }
+    }
+
+    /**
+     * Signs up a homepage guest user
+     * 
+     * @param {Object} args
+     * @param {string} args.postalCode - Postal code to sign up user
+     * @param {string} args.address - Address to sign up guest user
+     */
+    signupHomepageGuestUser = ({postalCode, address}) =>
+        new Promise((resolve, reject) => {
+            try {
+                // API parameters
+                const data = {
+                    operationName: "HomepageGuestUser",
+                    variables: {
+                        "postalCode": postalCode,
+                        "streetAddress": address
                     },
-                }),
-                extensions: JSON.stringify({
-                    "persistedQuery": {
-                        "version": 1,
-                        "sha256Hash": "281e876a4bc1aedc1d369cf730d9e4141bd7339c92b9c18d5fde7783134702c5"
+                    extensions: {
+                        "persistedQuery": {
+                            "version": 1,
+                            "sha256Hash": "3396660a30136599b441f3408b39212806a2515d345e235e1b4dc2e9e69ff806"
+                        }
+                    }
+                }
+
+                // Build request
+                request({
+                    url: `https://www.instacart.ca/graphql`,
+                    method: 'POST',
+                    headers: {
+                        'accept': '*/*',
+                        'accept-encoding': 'gzip, deflate, br',
+                        'accept-language': 'en-US,en;q=0.9',
+                        'cache-control': 'no-cache',
+                        'content-type': 'application/json',
+                        'origin': 'https://www.instacart.ca',
+                        'pragma': 'no-cache',
+                        'referer': 'https://www.instacart.ca/',
+                        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="101", "Google Chrome";v="101"',
+                        'sec-ch-ua-mobile': '?0',
+                        'sec-ch-ua-platform': '"Windows"',
+                        'sec-fetch-dest': 'empty',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-site': 'same-origin',
+                        'user-agent': this.userAgent,
+                        'x-client-identifier': 'web'
+                    },
+                    body: JSON.stringify(data),
+                    encoding: null
+                }, (err, res) => {
+                    try {
+                        if (err) throw new Error(err);
+                        else {
+                            if (res.statusCode === 200) {
+                                // Decode encoding if brotli
+                                if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
+
+                                // Parse response body JSON
+                                const parsedJSON = JSON.parse(res.body)
+
+                                // Set guest api token to be used for subsequent authenticated API requests
+                                this.guestApiToken = parsedJSON.data.createGuestUserWithAddress.token
+
+                                return resolve()
+                            } else throw new Error('Unexpected API response status code:', statusCode)
+                        }
+                    } catch (err) {
+                        console.error(err)
+                        return reject(err)
                     }
                 })
-            })
-
-            request({
-                url: `https://www.instacart.ca/graphql?${data.toString()}`
-            }, (err, res) => {
-                console.error(err);
-                console.log(res.body);
-            })
-        })
+        } catch (err) {
+            console.error(err)
+            return reject(err)
+        }
+    })
 
     /**
-     * Gets retailers given a 
+     * Gets available store ids from Instacart API, used to derive products from available stores
+     * 
+     * @param {Object} args
+     * @param {string} args.postalCode - Postal code to get available store ids
      */
-    test() {
+    getAvailableRetailServices = ({postalCode}) =>
+        new Promise((resolve, reject) => {
+            try {
+                // API parameters
+                const data = new URLSearchParams({
+                    operationName: "AvailableRetailerServices",
+                    variables: JSON.stringify({
+                        "postalCode": postalCode,
+                    }),
+                    extensions: JSON.stringify({
+                        "persistedQuery": {
+                            "version": 1,
+                            "sha256Hash": "281e876a4bc1aedc1d369cf730d9e4141bd7339c92b9c18d5fde7783134702c5"
+                        }
+                    })
+                })
 
-        const data = new URLSearchParams({
-            operationName: 'CrossRetailerSearchV2',
-            variables: JSON.stringify({
-                "overrideFeatureStates": [],
-                "query": "potatoe",
-                "zoneId": "759",
-                "postalCode": "L1S6B8",
-                "alcoholRetailerIds": ["1646"],
-                "nonAlcoholRetailerIds": ["1900", "2127", "2138", "311", "351", "354", "443", "462", "523", "534", "536", "551", "610", "635", "1256", "1473", "1509", "1543", "1555", "1603", "1609", "1610", "1634", "1671", "1702", "1721", "1765", "1898", "1928", "2044", "2081"],
-                "pickupOnlyRetailerIds": [],
-                "disableAutocorrect": false,
-                "includeDebugInfo": false
-            }),
-            extensions: JSON.stringify({
-                "persistedQuery": {
-                    "version": 1,
-                    "sha256Hash": "e68a32e923c4b9b6d84e8bd529b117563ab0da6c76d7068941f67044314e6f02"
-                }
-            })
-        })
+                // Build request
+                request({
+                    url: `https://www.instacart.ca/graphql?${data.toString()}`,
+                    method: 'GET',
+                    headers: {
+                        'accept': '*/*',
+                        'accept-encoding': 'gzip, deflate, br',
+                        'accept-language': 'en-US,en;q=0.9',
+                        'cache-control': 'no-cache',
+                        'content-type': 'application/json',
+                        'pragma': 'no-cache',
+                        'referer': 'https://www.instacart.ca/store/s',
+                        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="101", "Google Chrome";v="101"',
+                        'sec-ch-ua-mobile': '?0',
+                        'sec-ch-ua-platform': '"Windows"',
+                        'sec-fetch-dest': 'empty',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-site': 'same-origin',
+                        'user-agent': this.userAgent,
+                        'x-client-identifier': 'web',
+                        'cookie': `__Host-instacart_sid=${this.guestApiToken}`
+                    },
+                    encoding: null
+                }, (err, res) => {
+                    try {
+                        if (err) throw new Error(err);
+                        else {
+                            if (res.statusCode === 200) {
+                                // Decode encoding if brotli
+                                if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
+                                
+                                // Parse response body JSON
+                                const parsedJSON = JSON.parse(res.body)
 
-        request({
-            url: `https://www.instacart.ca/graphql?${data.toString()}`
-        }, (err, res) => {
-            console.error(err);
-            console.log(res.body);
-        })
-    }
+                                console.log(parsedJSON)
+
+                                return resolve()
+                            } else throw new Error('Unexpected API response status code:', statusCode)
+                        }
+                    } catch (err) {
+                        console.error(err)
+                        return reject(err)
+                    }
+                })
+        } catch (err) {
+            console.error(err)
+            return reject(err)
+        }
+    })
 }
 
-const main = () => {
+const main = async () => {
     const demo = new Demo();
 
-    demo.getAvailableRetailServices()
+    // M5R2A9
+    // 1233 Bay Street
+    await demo.signupHomepageGuestUser({postalCode: 'M5R2A9', address: '1233 Bay Street'})
+    await demo.getAvailableRetailServices({postalCode: 'M5R2A9'})
 }
 
 main();
