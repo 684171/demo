@@ -31,8 +31,8 @@ class Demo {
      * Signs up a homepage guest user
      * 
      * @param {Object} args
-     * @param {string} postalCode - Postal code to get register API token
-     * @param {string} address - Address to register API token
+     * @param {string} args.postalCode - Postal code to get register API token
+     * @param {string} args.address - Address to register API token
      * 
      * @returns {string} The guest API token
      */
@@ -93,7 +93,7 @@ class Demo {
                                 const guestApiToken = parsedJSON.data.createGuestUserWithAddress.token
 
                                 return resolve(guestApiToken)
-                            } else throw new Error('Unexpected API response status code:', statusCode)
+                            } else throw new Error('Unexpected API response status code: ' + res.statusCode)
                         }
                     } catch (err) {
                         console.error(err)
@@ -110,8 +110,8 @@ class Demo {
      * Gets available retailers from Instacart API, used to derive products from available stores
      * 
      * @param {Object} args
-     * @param {string} postalCode - Postal code to get relative available store ids
-     * @param {string} guestApiToken - API token derived from registering as a homepage guest user
+     * @param {string} args.postalCode - Postal code to get relative available store ids
+     * @param {string} args.guestApiToken - API token derived from registering as a homepage guest user
      * 
      * @returns {Array.<{id: string, name: string, slug: string, type: string}>} Available retailers
      */
@@ -166,7 +166,7 @@ class Demo {
                                 // Parse response body JSON
                                 const parsedJSON = JSON.parse(res.body)
 
-                                // Map response to array of non-alcohol available retailer ids
+                                // Map response to trimmed non-alcohol available retailer ids
                                 const retailers = parsedJSON.data.availableRetailerServices
                                     .filter(({
                                         retailer
@@ -181,7 +181,7 @@ class Demo {
                                     }))
 
                                 return resolve(retailers)
-                            } else throw new Error('Unexpected API response status code:', statusCode)
+                            } else throw new Error('Unexpected API response status code: ' + res.statusCode)
                         }
                     } catch (err) {
                         console.error(err)
@@ -195,17 +195,17 @@ class Demo {
         })
 
     /**
-     * Gets stores matching a search query
+     * Gets products matching a search query
      * 
      * @param {Object} args
-     * @param {string} postalCode - Postal code to search
-     * @param {string} guestApiToken - API token derived from registering as a homepage guest user
-     * @param {Array.<{id: string, name: string, slug: string, type: string}>} retailers - List of retailers to search
-     * @param {string} query - Query to search
+     * @param {string} args.postalCode - Postal code to search
+     * @param {string} args.guestApiToken - API token derived from registering as a homepage guest user
+     * @param {Array.<{id: string, name: string, slug: string, type: string}>} args.retailers - List of retailers to search
+     * @param {string} args.query - Query to search
      * 
-     * @returns {Array.<{id: string, name: string, slug: string, type: string}>} Retailers matching search query
+     * @returns {{showingResultsForString: string, products: Array.<{name: string, retailerId: string, productId: string, image: string}>}} - Products matching search & showing results for string
      */
-    getStoresFromSearch = ({postalCode, guestApiToken, retailers, query}) =>
+     getProductsMatchingSearch = ({postalCode, guestApiToken, retailers, query}) =>
         new Promise((resolve, reject) => {
             try {
                 // API parameters
@@ -265,6 +265,7 @@ class Demo {
                                 // Parse response body JSON
                                 const parsedJSON = JSON.parse(res.body)
 
+                                // Map response to trimmed product data
                                 const products = parsedJSON.data.searchCrossRetailerResultsV2.retailerProducts.map(({
                                     name,
                                     retailerId,
@@ -281,8 +282,77 @@ class Demo {
                                     image
                                 }))
 
-                                return resolve(products)
-                            } else throw new Error('Unexpected API response status code:', statusCode)
+                                return resolve({
+                                    showingResultsForString: parsedJSON.data.searchCrossRetailerResultsV2.viewSection.reformulation.showingResultsForString,
+                                    products
+                                })
+                            } else throw new Error('Unexpected API response status code: ' + res.statusCode)
+                        }
+                    } catch (err) {
+                        console.error(err)
+                        return reject(err)
+                    }
+                })
+            } catch (err) {
+                console.error(err)
+                return reject(err)
+            }
+        })
+
+    /**
+     * Gets up to 20 products' data
+     * 
+     * @param {Object} args
+     * @param {String[]} args.productIds - Array of product ids to derive data
+     * @param {string} args.guestApiToken - API token derived from registering as a homepage guest user
+     */
+    getProductData = ({productIds, guestApiToken}) =>
+        new Promise((resolve, reject) => {
+            try {
+                // API parameters
+                const data = new URLSearchParams({
+                    override_retailer_available_flag: true,
+                    source: 'web'
+                })
+
+                const parsedProductIds = productIds.map(productId => `item_${productId}`).join(',')
+
+                // Build request
+                request({
+                    url: `https://www.instacart.ca/v3/view/item_attributes/${parsedProductIds}?${data.toString()}`,
+                    method: 'GET',
+                    headers: {
+                        'accept': '*/*',
+                        'accept-encoding': 'gzip, deflate, br',
+                        'accept-language': 'en-US,en;q=0.9',
+                        'cache-control': 'no-cache',
+                        'content-type': 'application/json',
+                        'pragma': 'no-cache',
+                        'referer': 'https://www.instacart.ca/store/s',
+                        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="101", "Google Chrome";v="101"',
+                        'sec-ch-ua-mobile': '?0',
+                        'sec-ch-ua-platform': '"Windows"',
+                        'sec-fetch-dest': 'empty',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-site': 'same-origin',
+                        'user-agent': this.USER_AGENT,
+                        'x-client-identifier': 'web',
+                        'cookie': `__Host-instacart_sid=${guestApiToken}` // API auth cookie
+                    },
+                    encoding: null
+                }, (err, res) => {
+                    try {
+                        if (err) throw new Error(err);
+                        else {
+                            if (res.statusCode === 200) {
+                                // Decode encoding if brotli
+                                if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
+
+                                // Parse response body JSON
+                                const parsedJSON = JSON.parse(res.body)
+
+                                return resolve(parsedJSON.view)
+                            } else throw new Error('Unexpected API response status code: '+  res.statusCode)
                         }
                     } catch (err) {
                         console.error(err)
@@ -305,13 +375,19 @@ const main = async () => {
 
     const postalCode = 'M5R2A9'
     const address = '1233 Bay Street'
-    const query = 'potatoe'
+    const query = 'tomatoe'
 
     const guestApiToken = await demo.signupHomepageGuestUser({postalCode, address})
     const retailers = await demo.getAvailableRetailServices({postalCode, guestApiToken})
-    const products = await demo.getStoresFromSearch({postalCode, guestApiToken, retailers, query})
+    const searchResult = await demo.getProductsMatchingSearch({postalCode, guestApiToken, retailers, query})
+    
+    const productIds = searchResult.products.splice(5, 6).map(product => product.productId)
 
-    console.log(products)
+    console.log(productIds)
+
+    const productData = await demo.getProductData({productIds, guestApiToken})
+
+    console.log(productData)
 }
 
 main();
