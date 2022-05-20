@@ -1,7 +1,8 @@
 const request = require('request')
 const zlib = require('zlib')
 const { v4: uuidv4 } = require('uuid')
-class Demo {
+
+class Instacart {
     constructor() {
         // Class constants
         this.USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36'
@@ -368,7 +369,7 @@ class Demo {
 }
 
 const main = async () => {
-    const demo = new Demo({
+    const demo = new Instacart({
         postalCode: 'M5R2A9',
         address: '1233 Bay Street'
     });
