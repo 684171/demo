@@ -283,7 +283,7 @@ class Demo {
                                 }))
 
                                 return resolve({
-                                    showingResultsForString: parsedJSON.data.searchCrossRetailerResultsV2.viewSection.reformulation.showingResultsForString,
+                                    showingResultsForString: parsedJSON.data?.searchCrossRetailerResultsV2?.viewSection?.reformulation?.showingResultsForString,
                                     products
                                 })
                             } else throw new Error('Unexpected API response status code: ' + res.statusCode)
