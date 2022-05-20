@@ -1,17 +1,12 @@
 const request = require('request')
 const zlib = require('zlib')
+const { v4: uuidv4 } = require('uuid')
+const { parse } = require('path')
 
 class Demo {
-    constructor({postalCode, address}) {
-        // Input defined, constant value variables
-        this.postalCode = postalCode
-        this.address = address
-
+    constructor() {
         // Class constants
         this.USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36'
-        
-        // Class defined, dynamic value variables
-        this.guestApiToken = undefined
     }
 
     /**
@@ -36,16 +31,22 @@ class Demo {
 
     /**
      * Signs up a homepage guest user
+     * 
+     * @param {Object} args
+     * @param {string} postalCode - Postal code to get register API token
+     * @param {string} address - Address to register API token
+     * 
+     * @returns {string} The guest API token
      */
-    signupHomepageGuestUser = () =>
+    signupHomepageGuestUser = ({postalCode, address}) =>
         new Promise((resolve, reject) => {
             try {
                 // API parameters
                 const data = {
                     operationName: "HomepageGuestUser",
                     variables: {
-                        "postalCode": this.postalCode,
-                        "streetAddress": this.address
+                        "postalCode": postalCode,
+                        "streetAddress": address
                     },
                     extensions: {
                         "persistedQuery": {
@@ -91,9 +92,9 @@ class Demo {
                                 const parsedJSON = JSON.parse(res.body)
 
                                 // Set guest api token to be used for subsequent authenticated API requests
-                                this.guestApiToken = parsedJSON.data.createGuestUserWithAddress.token
+                                const guestApiToken = parsedJSON.data.createGuestUserWithAddress.token
 
-                                return resolve()
+                                return resolve(guestApiToken)
                             } else throw new Error('Unexpected API response status code:', statusCode)
                         }
                     } catch (err) {
@@ -108,16 +109,22 @@ class Demo {
     })
 
     /**
-     * Gets available store ids from Instacart API, used to derive products from available stores
+     * Gets available retailers from Instacart API, used to derive products from available stores
+     * 
+     * @param {Object} args
+     * @param {string} postalCode - Postal code to get relative available store ids
+     * @param {string} guestApiToken - API token derived from registering as a homepage guest user
+     * 
+     * @returns {Array.<{id: string, name: string, slug: string, type: string}>} Available retailers
      */
-    getAvailableRetailServices = () =>
+    getAvailableRetailServices = ({postalCode, guestApiToken}) =>
         new Promise((resolve, reject) => {
             try {
                 // API parameters
                 const data = new URLSearchParams({
                     operationName: "AvailableRetailerServices",
                     variables: JSON.stringify({
-                        "postalCode": this.postalCode,
+                        "postalCode": postalCode,
                     }),
                     extensions: JSON.stringify({
                         "persistedQuery": {
@@ -147,7 +154,7 @@ class Demo {
                         'sec-fetch-site': 'same-origin',
                         'user-agent': this.USER_AGENT,
                         'x-client-identifier': 'web',
-                        'cookie': `__Host-instacart_sid=${this.guestApiToken}` // API auth cookie
+                        'cookie': `__Host-instacart_sid=${guestApiToken}` // API auth cookie
                     },
                     encoding: null
                 }, (err, res) => {
@@ -161,10 +168,15 @@ class Demo {
                                 // Parse response body JSON
                                 const parsedJSON = JSON.parse(res.body)
 
-                                // Map response to array of available retailer ids
-                                const retailerIds = parsedJSON.data.availableRetailerServices.map(service => service.retailerId)
+                                // Map response to array of non-alcohol available retailer ids
+                                const retailers = parsedJSON.data.availableRetailerServices
+                                                    .filter(({retailer}) => retailer.type !== 'Alcohol')
+                                                    .map(({retailer}) => ({id: retailer.id,
+                                                                           name: retailer.name,
+                                                                           slug: retailer.slug,
+                                                                           type: retailer.retailerType}))
 
-                                return resolve(retailerIds)
+                                return resolve(retailers)
                             } else throw new Error('Unexpected API response status code:', statusCode)
                         }
                     } catch (err) {
@@ -177,17 +189,117 @@ class Demo {
             return reject(err)
         }
     })
+
+    /**
+     * Gets stores matching a search query
+     * 
+     * @param {Object} args
+     * @param {string} postalCode - Postal code to search
+     * @param {string} guestApiToken - API token derived from registering as a homepage guest user
+     * @param {Array.<{id: string, name: string, slug: string, type: string}>} retailers - List of retailers to search
+     * @param {string} query - Query to search
+     * 
+     * @returns {Array.<{id: string, name: string, slug: string, type: string}>} Retailers matching search query
+     */
+    getStoresFromSearch = ({postalCode, guestApiToken, retailers, query}) =>
+         new Promise((resolve, reject) => {
+             try {
+                 // API parameters
+                 const data = new URLSearchParams({
+                     operationName: "CrossRetailerSearchV2",
+                     variables: JSON.stringify({
+                        "overrideFeatureStates": [],
+                        "query": query,
+                        "zoneId": "709",
+                        "postalCode": postalCode,
+                        "alcoholRetailerIds": [],
+                        "nonAlcoholRetailerIds": retailers.map(({id}) => id),
+                        "pickupOnlyRetailerIds": [],
+                        "pageViewId": uuidv4(),
+                        "disableAutocorrect": false,
+                        "includeDebugInfo": false
+                    }),
+                    extensions: JSON.stringify({
+                         "persistedQuery": {
+                             "version": 1,
+                             "sha256Hash": "e68a32e923c4b9b6d84e8bd529b117563ab0da6c76d7068941f67044314e6f02"
+                         }
+                     })
+                 })
+ 
+                 // Build request
+                 request({
+                     url: `https://www.instacart.ca/graphql?${data.toString()}`,
+                     method: 'GET',
+                     headers: {
+                         'accept': '*/*',
+                         'accept-encoding': 'gzip, deflate, br',
+                         'accept-language': 'en-US,en;q=0.9',
+                         'cache-control': 'no-cache',
+                         'content-type': 'application/json',
+                         'pragma': 'no-cache',
+                         'referer': 'https://www.instacart.ca/store/s',
+                         'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="101", "Google Chrome";v="101"',
+                         'sec-ch-ua-mobile': '?0',
+                         'sec-ch-ua-platform': '"Windows"',
+                         'sec-fetch-dest': 'empty',
+                         'sec-fetch-mode': 'cors',
+                         'sec-fetch-site': 'same-origin',
+                         'user-agent': this.USER_AGENT,
+                         'x-client-identifier': 'web',
+                         'cookie': `__Host-instacart_sid=${guestApiToken}` // API auth cookie
+                     },
+                     encoding: null
+                 }, (err, res) => {
+                     try {
+                         if (err) throw new Error(err);
+                         else {
+                             if (res.statusCode === 200) {
+                                 // Decode encoding if brotli
+                                 if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
+                                 
+                                 // Parse response body JSON
+                                 const parsedJSON = JSON.parse(res.body)
+
+                                 const products = parsedJSON.data.searchCrossRetailerResultsV2.retailerProducts.map(({
+                                    name,
+                                    retailerId,
+                                    productId,
+                                    viewSection: {
+                                            retailerProductImage: {
+                                                url: image
+                                            }
+                                        }
+                                    }) => ({ name, retailerId, productId, image}))
+
+                                 return resolve(products)
+                              } else throw new Error('Unexpected API response status code:', statusCode)
+                         }
+                     } catch (err) {
+                         console.error(err)
+                         return reject(err)
+                     }
+                 })
+         } catch (err) {
+             console.error(err)
+             return reject(err)
+         }
+     })
+ 
 }
 
 const main = async () => {
     const demo = new Demo({postalCode: 'M5R2A9', address: '1233 Bay Street'});
 
-    // M5R2A9
-    // 1233 Bay Street
-    await demo.signupHomepageGuestUser()
-    const data = await demo.getAvailableRetailServices()
+    const postalCode = 'M5R2A9'
+    const address = '1233 Bay Street'
+    const query = 'potatoe'
 
-    console.log(data)
+    const guestApiToken = await demo.signupHomepageGuestUser({postalCode, address})
+    const retailers = await demo.getAvailableRetailServices({postalCode, guestApiToken})
+    const products = await demo.getStoresFromSearch({postalCode, guestApiToken, retailers, query})
+
+    console.log(products)
 }
 
 main();
