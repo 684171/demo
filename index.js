@@ -1,8 +1,6 @@
 const request = require('request')
 const zlib = require('zlib')
 const { v4: uuidv4 } = require('uuid')
-const { parse } = require('path')
-
 class Demo {
     constructor() {
         // Class constants
@@ -15,7 +13,7 @@ class Demo {
      * @param {string} data - UTF-8 encoded data to be decoded
      */
     decodeBrotliEncoding = (input) => {
-        try {  
+        try {
             // Convert data to utf-8
             const data = Buffer.from(input, 'utf-8')
 
@@ -102,11 +100,11 @@ class Demo {
                         return reject(err)
                     }
                 })
-        } catch (err) {
-            console.error(err)
-            return reject(err)
-        }
-    })
+            } catch (err) {
+                console.error(err)
+                return reject(err)
+            }
+        })
 
     /**
      * Gets available retailers from Instacart API, used to derive products from available stores
@@ -164,17 +162,23 @@ class Demo {
                             if (res.statusCode === 200) {
                                 // Decode encoding if brotli
                                 if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
-                                
+
                                 // Parse response body JSON
                                 const parsedJSON = JSON.parse(res.body)
 
                                 // Map response to array of non-alcohol available retailer ids
                                 const retailers = parsedJSON.data.availableRetailerServices
-                                                    .filter(({retailer}) => retailer.type !== 'Alcohol')
-                                                    .map(({retailer}) => ({id: retailer.id,
-                                                                           name: retailer.name,
-                                                                           slug: retailer.slug,
-                                                                           type: retailer.retailerType}))
+                                    .filter(({
+                                        retailer
+                                    }) => retailer.type !== 'Alcohol')
+                                    .map(({
+                                        retailer
+                                    }) => ({
+                                        id: retailer.id,
+                                        name: retailer.name,
+                                        slug: retailer.slug,
+                                        type: retailer.retailerType
+                                    }))
 
                                 return resolve(retailers)
                             } else throw new Error('Unexpected API response status code:', statusCode)
@@ -184,11 +188,11 @@ class Demo {
                         return reject(err)
                     }
                 })
-        } catch (err) {
-            console.error(err)
-            return reject(err)
-        }
-    })
+            } catch (err) {
+                console.error(err)
+                return reject(err)
+            }
+        })
 
     /**
      * Gets stores matching a search query
@@ -202,12 +206,12 @@ class Demo {
      * @returns {Array.<{id: string, name: string, slug: string, type: string}>} Retailers matching search query
      */
     getStoresFromSearch = ({postalCode, guestApiToken, retailers, query}) =>
-         new Promise((resolve, reject) => {
-             try {
-                 // API parameters
-                 const data = new URLSearchParams({
-                     operationName: "CrossRetailerSearchV2",
-                     variables: JSON.stringify({
+        new Promise((resolve, reject) => {
+            try {
+                // API parameters
+                const data = new URLSearchParams({
+                    operationName: "CrossRetailerSearchV2",
+                    variables: JSON.stringify({
                         "overrideFeatureStates": [],
                         "query": query,
                         "zoneId": "709",
@@ -220,76 +224,84 @@ class Demo {
                         "includeDebugInfo": false
                     }),
                     extensions: JSON.stringify({
-                         "persistedQuery": {
-                             "version": 1,
-                             "sha256Hash": "e68a32e923c4b9b6d84e8bd529b117563ab0da6c76d7068941f67044314e6f02"
-                         }
-                     })
-                 })
- 
-                 // Build request
-                 request({
-                     url: `https://www.instacart.ca/graphql?${data.toString()}`,
-                     method: 'GET',
-                     headers: {
-                         'accept': '*/*',
-                         'accept-encoding': 'gzip, deflate, br',
-                         'accept-language': 'en-US,en;q=0.9',
-                         'cache-control': 'no-cache',
-                         'content-type': 'application/json',
-                         'pragma': 'no-cache',
-                         'referer': 'https://www.instacart.ca/store/s',
-                         'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="101", "Google Chrome";v="101"',
-                         'sec-ch-ua-mobile': '?0',
-                         'sec-ch-ua-platform': '"Windows"',
-                         'sec-fetch-dest': 'empty',
-                         'sec-fetch-mode': 'cors',
-                         'sec-fetch-site': 'same-origin',
-                         'user-agent': this.USER_AGENT,
-                         'x-client-identifier': 'web',
-                         'cookie': `__Host-instacart_sid=${guestApiToken}` // API auth cookie
-                     },
-                     encoding: null
-                 }, (err, res) => {
-                     try {
-                         if (err) throw new Error(err);
-                         else {
-                             if (res.statusCode === 200) {
-                                 // Decode encoding if brotli
-                                 if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
-                                 
-                                 // Parse response body JSON
-                                 const parsedJSON = JSON.parse(res.body)
+                        "persistedQuery": {
+                            "version": 1,
+                            "sha256Hash": "e68a32e923c4b9b6d84e8bd529b117563ab0da6c76d7068941f67044314e6f02"
+                        }
+                    })
+                })
 
-                                 const products = parsedJSON.data.searchCrossRetailerResultsV2.retailerProducts.map(({
+                // Build request
+                request({
+                    url: `https://www.instacart.ca/graphql?${data.toString()}`,
+                    method: 'GET',
+                    headers: {
+                        'accept': '*/*',
+                        'accept-encoding': 'gzip, deflate, br',
+                        'accept-language': 'en-US,en;q=0.9',
+                        'cache-control': 'no-cache',
+                        'content-type': 'application/json',
+                        'pragma': 'no-cache',
+                        'referer': 'https://www.instacart.ca/store/s',
+                        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="101", "Google Chrome";v="101"',
+                        'sec-ch-ua-mobile': '?0',
+                        'sec-ch-ua-platform': '"Windows"',
+                        'sec-fetch-dest': 'empty',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-site': 'same-origin',
+                        'user-agent': this.USER_AGENT,
+                        'x-client-identifier': 'web',
+                        'cookie': `__Host-instacart_sid=${guestApiToken}` // API auth cookie
+                    },
+                    encoding: null
+                }, (err, res) => {
+                    try {
+                        if (err) throw new Error(err);
+                        else {
+                            if (res.statusCode === 200) {
+                                // Decode encoding if brotli
+                                if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
+
+                                // Parse response body JSON
+                                const parsedJSON = JSON.parse(res.body)
+
+                                const products = parsedJSON.data.searchCrossRetailerResultsV2.retailerProducts.map(({
                                     name,
                                     retailerId,
                                     productId,
                                     viewSection: {
-                                            retailerProductImage: {
-                                                url: image
-                                            }
+                                        retailerProductImage: {
+                                            url: image
                                         }
-                                    }) => ({ name, retailerId, productId, image}))
+                                    }
+                                }) => ({
+                                    name,
+                                    retailerId,
+                                    productId,
+                                    image
+                                }))
 
-                                 return resolve(products)
-                              } else throw new Error('Unexpected API response status code:', statusCode)
-                         }
-                     } catch (err) {
-                         console.error(err)
-                         return reject(err)
-                     }
-                 })
-         } catch (err) {
-             console.error(err)
-             return reject(err)
-         }
-     })
- 
+                                return resolve(products)
+                            } else throw new Error('Unexpected API response status code:', statusCode)
+                        }
+                    } catch (err) {
+                        console.error(err)
+                        return reject(err)
+                    }
+                })
+            } catch (err) {
+                console.error(err)
+                return reject(err)
+            }
+        })
+
 }
 
 const main = async () => {
-    const demo = new Demo({postalCode: 'M5R2A9', address: '1233 Bay Street'});
+    const demo = new Demo({
+        postalCode: 'M5R2A9',
+        address: '1233 Bay Street'
+    });
 
     const postalCode = 'M5R2A9'
     const address = '1233 Bay Street'
