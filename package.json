@@ -1,10 +1,24 @@
 {
-  "dependencies": {
-    "request": "^2.88.2",
-    "requests": "^0.3.0",
-    "uuid": "^8.3.2"
-  },
-  "scripts": {
-    "start": "node ./"
+    "name": "frugle",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+      "dev": "cd ./src/frontend && next dev",
+      "build": "cd ./src/frontend && next build",
+      "start": "cd ./src/frontend && next start",
+      "lint": "cd ./src/frontend && next lint"
+    },
+    "dependencies": {
+      "next": "12.1.6",
+      "react": "18.1.0",
+      "react-dom": "18.1.0",
+      "request": "^2.88.2",
+      "uuid": "^8.3.2"  
+    },
+    "devDependencies": {
+      "eslint": "8.16.0",
+      "eslint-config-next": "12.1.6",
+      "sass": "^1.52.1"
+    }
   }
-}
+  
