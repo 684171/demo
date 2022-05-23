@@ -7,7 +7,7 @@ export default function Search() {
         <div id="container">
             <div id="search">
                 <input type="text" placeholder="Search For A Product" value={query} onChange={(e) => setQuery(e.target.value)}/>
-                <img src="../" />
+                <button type="submit"/>
             </div>
         </div>
     )
