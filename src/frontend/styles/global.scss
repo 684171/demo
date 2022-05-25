@@ -31,7 +31,7 @@
     display: flex;
     justify-content: center;
 
-    #search {
+    #search, #address {
         width: 40vh;
         height: 40px;
         padding: 0px 16px;
@@ -49,7 +49,9 @@
         }
     
         input[type=text]:focus, input[type=text]:focus-visible {
-            outline: none;
+            outline-width: 0;
+            outline-offset: 0;
+            outline: none !important;
             border: none;
         }
     
