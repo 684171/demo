@@ -11,7 +11,7 @@ export default function Frugle() {
         <div id="frugle">
             <div id="title">Frugle</div>
                {
-                   !hasValidAddress
+                  hasValidAddress
                     ? <Search query={query} setQuery={setQuery}/>
                     : <Address
                         address={address}

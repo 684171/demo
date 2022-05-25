@@ -5,7 +5,7 @@ export default function Search(props) {
         <div id="container">
             <div id="search">
                 <input type="text" placeholder="Search For A Product" value={query} onChange={(e) => setQuery(e.target.value)}/>
-                <button id="search" type="submit"/>
+                <button id="search-icon" type="submit"/>
             </div>
         </div>
     )

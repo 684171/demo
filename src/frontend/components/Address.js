@@ -5,7 +5,7 @@ export default function Address(props) {
         <div id="container">
             <div id="address">
                 <input type="text" placeholder="Enter Your Address" value={address} onChange={(e) => setAddress(e.target.value)}/>
-                <button id="address" type="submit" disabled={true}/>
+                <button id="address-icon" type="submit" disabled={true}/>
             </div>
         </div>
     )
