@@ -7,6 +7,8 @@ export default function Frugle() {
     const [postalCode, setPostalCode] = useState('')
     const [hasValidAddress, setHasValidAddress] = useState(false);
 
+    console.log(postalCode, address)
+
     return (
         <div id="frugle">
             <div id="title">Frugle</div>

@@ -7,7 +7,7 @@
     height: 100%;
     padding: 0;
     margin: 0;
-    background-color: $background-color;
+    background: $background-color;
     color: $text-color;
     font-family: Helvetica, Arial, sans-serif;
     text-align: center;
@@ -26,10 +26,16 @@
     font-weight: bold;
 }
 
+
 #container {
     width: 100%;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    
+    #shadow {
+        box-shadow: 4px 8px 16px 4px color.adjust($search-unfocused-color, $alpha: -0.8);
+    }
 
     #search, #address {
         width: 40vh;
@@ -37,15 +43,16 @@
         padding: 0px 16px;
         border-radius: 4px;
         border: none;
-        font-family: Arial, Helvetica, sans-serif;
-        box-shadow: 4px 8px 16px 4px color.adjust($search-unfocused-color, $alpha: -0.8);
-        display: flex;
+        font-family: Arial, Arial, Helvetica, sans-serif;
+        background: $text-input-background-color;
+        display: flex;    
     
         input[type=text] {
             width: 100%;
             border: none;
             padding: 0;
             margin: 0;
+            font-size: 12px;
         
             &:focus, &:focus-visible {
                 outline: none;
@@ -72,6 +79,59 @@
             
             &#address-icon {
                 background-image: url(../public/images/address-icon.svg);
+            }
+        }
+    }
+
+    #autocomplete-address {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    
+        #autocomplete-address-box {
+            width: 40vh;
+            padding: 0px 16px;
+            margin: 0;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            background-color: $text-input-background-color;
+    
+            #autocomplete-address-option {
+                background-color: $text-input-background-color;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                border: none;
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+    
+                #autocomplete-address-data {
+                    width: 100%;
+                    display: block;
+                    text-align: left;
+
+                    #line-one {
+                        font-weight: bold;
+                        font-size: 12px;
+                    }
+
+                    #line-two {
+                        font-weight: bold;
+                        margin: 2px 0 0;
+                        font-size: 8px;
+                        opacity: 80%;
+                    }
+                    
+                }
+    
+                svg {
+                    margin: 0px 4px;
+                    width: 20px;
+                    height: 40px;
+                    opacity: 60%;
+                }    
             }
         }
     }
