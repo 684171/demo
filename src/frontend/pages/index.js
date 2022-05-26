@@ -7,14 +7,12 @@ export default function Frugle() {
     const [postalCode, setPostalCode] = useState('')
     const [hasValidAddress, setHasValidAddress] = useState(false);
 
-    console.log(postalCode, address)
-
     return (
         <div id="frugle">
             <div id="title">Frugle</div>
                {
                   hasValidAddress
-                    ? <Search query={query} setQuery={setQuery}/>
+                    ? <Search query={query} address={address} postalCode={postalCode} setQuery={setQuery}/>
                     : <Address
                         address={address}
                         setAddress={setAddress}
