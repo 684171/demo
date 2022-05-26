@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import axios from 'axios';
 
 export default function Search(props) {    
@@ -8,6 +8,7 @@ export default function Search(props) {
 
     const register = async () => {
         const { data } = axios.post('/api/register', {address, postalCode})
+        console.log(data)
         setGuestApiToken(data.guestApiToken)
     }
 
