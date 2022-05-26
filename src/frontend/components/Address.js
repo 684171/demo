@@ -54,27 +54,25 @@ export default function Address(props) {
 
     return (
         <div id="container">
-            <div id="shadow">
+            <div id="border-shadow-wrapper">
                 <div id="address">
                     <input type="text" disabled={inputDisabled} placeholder="Enter Your Address" value={address} onChange={(e) => setAddress(e.target.value)}/>
                     <button id="address-icon" type="submit" disabled={true}/>
                 </div>
                 {
-                    autocompletes &&
-                        <div id="autocomplete-address">
+                    autocompletes.length > 0 &&
                         <div id="autocomplete-address-box">
-                            {
-                                autocompletes.map(({lineOne, lineTwo, postalCode}) => 
-                                    <AddressAutocomplete
-                                        key={uuidv4()}
-                                        onClick={() => onAutocompleteAddressClick(lineOne, postalCode)}
-                                        lineOne={lineOne}
-                                        lineTwo={lineTwo}
-                                        postalCode={postalCode}
-                                    />
-                                )
-                            }
-                        </div>
+                        {
+                            autocompletes.map(({lineOne, lineTwo, postalCode}) => 
+                                <AddressAutocomplete
+                                    key={uuidv4()}
+                                    onClick={() => onAutocompleteAddressClick(lineOne, postalCode)}
+                                    lineOne={lineOne}
+                                    lineTwo={lineTwo}
+                                    postalCode={postalCode}
+                                />
+                            )
+                        }
                     </div>
                 }
             </div>

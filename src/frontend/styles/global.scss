@@ -22,7 +22,7 @@
 
 #title {
     margin: 128px 0px 32px;
-    font-size: 64px;
+    font-size: 96px;
     font-weight: bold;
 }
 
@@ -33,26 +33,26 @@
     flex-direction: column;
     align-items: center;
     
-    #shadow {
+    #border-shadow-wrapper {
         box-shadow: 4px 8px 16px 4px color.adjust($search-unfocused-color, $alpha: -0.8);
+        border-radius: 4px;
     }
 
     #search, #address {
         width: 40vh;
-        height: 40px;
+        height: 50px;
         padding: 0px 16px;
-        border-radius: 4px;
         border: none;
         font-family: Arial, Arial, Helvetica, sans-serif;
-        background: $text-input-background-color;
-        display: flex;    
+        display: flex;
+        align-items: center;
     
         input[type=text] {
             width: 100%;
             border: none;
             padding: 0;
             margin: 0;
-            font-size: 12px;
+            font-size: 16px;
         
             &:focus, &:focus-visible {
                 outline: none;
@@ -66,11 +66,12 @@
 
         button[type=submit] {
             width: 20px;
+            height: 50px;
             margin: 0 4px;
             padding: 0;
             border: none;
             background: transparent;
-            background-size: 20px 40px;
+            background-size: 20px 50px;
             opacity: 60%;
             
             &#search-icon {
@@ -83,44 +84,42 @@
         }
     }
 
-    #autocomplete-address {
-        width: 100%;
+    #autocomplete-address-box {
+        margin: 0;
+        border-radius: 4px;
         display: flex;
-        justify-content: center;
-    
-        #autocomplete-address-box {
+        flex-direction: column;
+
+        #autocomplete-address-option-wrapper {
             width: 40vh;
+            height: 50px;
             padding: 0px 16px;
-            margin: 0;
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            background-color: $text-input-background-color;
-    
+            background: $text-input-background-color;
+
             #autocomplete-address-option {
-                background-color: $text-input-background-color;
                 width: 100%;
-                margin: 0;
                 padding: 0;
                 border: none;
+                margin: 0;
                 display: flex;
                 align-items: center;
+                background: transparent;
                 cursor: pointer;
     
                 #autocomplete-address-data {
                     width: 100%;
                     display: block;
                     text-align: left;
-
+    
                     #line-one {
                         font-weight: bold;
-                        font-size: 12px;
+                        font-size: 16px;
                     }
-
+    
                     #line-two {
                         font-weight: bold;
                         margin: 2px 0 0;
-                        font-size: 8px;
+                        font-size: 12px;
                         opacity: 80%;
                     }
                     
@@ -129,9 +128,13 @@
                 svg {
                     margin: 0px 4px;
                     width: 20px;
-                    height: 40px;
+                    height: 50px;
                     opacity: 60%;
-                }    
+                }
+            }
+
+            &:hover {
+                background: $address-hovor-color;
             }
         }
     }

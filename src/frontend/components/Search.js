@@ -3,7 +3,7 @@ export default function Search(props) {
     
     return (
         <div id="container">
-            <div id="shadow">
+            <div id="border-shadow-wrapper">
                 <div id="search">
                     <input type="text" placeholder="Search For A Product" value={query} onChange={(e) => setQuery(e.target.value)}/>
                     <button id="search-icon" type="submit"/>
