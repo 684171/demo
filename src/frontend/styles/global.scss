@@ -156,4 +156,47 @@
             }
         }
     }
+
+    #search-results-box {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        margin: 16px 25%;
+
+        #search-result-wrapper {
+            margin: 4px 4px;
+            border: 1px solid black;
+            border-radius: 16px;
+            background: $text-input-background-color;
+
+            #search-result-option {
+                width: 20vh;
+                height: 20vh;
+                border: none;
+                background: transparent;
+                display: block;
+
+                #search-result-data {
+
+                    a {
+                        text-decoration: none;
+                        #store {
+                            font-size: 16px;
+                            color: $text-color;                            
+                        }    
+                    }
+
+                    #name {
+
+                    }
+                }
+                
+                img {
+                    width: 128px;
+                    height: 128px;
+                }
+            }
+        }
+    }
 }

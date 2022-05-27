@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios';
+import SearchItem from './SearchItem'
 
 export default function Search(props) {    
     const { address, postalCode } = props;
@@ -27,9 +28,7 @@ export default function Search(props) {
         setIsDisabled(true)
 
         const { data } = await axios.post('/api/search/items', {postalCode, guestApiToken, retailers, query})
-        setItems(data)
-
-        console.log(data)
+        setItems(data.products)
 
         setIsDisabled(false)
     }
@@ -48,6 +47,20 @@ export default function Search(props) {
                     </form>
                 </fieldset>
             </div>
+                {
+                    items.length > 0 &&
+                    <div id="search-results-box">
+                        {
+                            items.map(({name, retailerId, image}) =>
+                                <SearchItem
+                                    key={image}
+                                    name={name}
+                                    store={retailers.find(({id}) => retailerId === id)}
+                                    image={image}
+                                />)
+                        }
+                    </div>
+                }
         </div>
     )
 }
