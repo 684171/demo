@@ -47,6 +47,13 @@
         border-radius: 4px;
     }
 
+    fieldset {
+        border: none;
+        outline: none;
+        padding: 0;
+        margin: 0;
+    }
+
     #search, #address {
         width: 40vh;
         height: 50px;
@@ -63,6 +70,7 @@
             margin: 0;
             font-size: 16px;
             outline: none !important;
+            background: transparent;
 
             &:focus, &:focus-visible {
                 border: none;

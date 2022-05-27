@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Address, Search } from '../components'
 
 export default function Frugle() {
-    const [query, setQuery] = useState('')
     const [address, setAddress] = useState('')
     const [postalCode, setPostalCode] = useState('')
     const [hasValidAddress, setHasValidAddress] = useState(false);
@@ -12,7 +11,7 @@ export default function Frugle() {
             <div id="title">Frugle</div>
                {
                   hasValidAddress
-                    ? <Search query={query} address={address} postalCode={postalCode} setQuery={setQuery}/>
+                    ? <Search address={address} postalCode={postalCode}/>
                     : <Address
                         address={address}
                         setAddress={setAddress}

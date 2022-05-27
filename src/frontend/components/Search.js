@@ -2,17 +2,36 @@ import { useEffect, useState } from 'react'
 import axios from 'axios';
 
 export default function Search(props) {    
-    const { query, setQuery, address, postalCode } = props;
+    const { address, postalCode } = props;
 
+    const [query, setQuery] = useState('')
+    const [isDisabled, setIsDisabled] = useState(true)
     const [isRegistered, setIsRegistered] = useState(false)
     const [guestApiToken, setGuestApiToken] = useState('')
     const [retailers, setRetailers] = useState([])
+    const [items, setItems] = useState([])
 
     const register = async () => {
         const { data } = await axios.post('/api/register', {address, postalCode})
         setIsRegistered(true)
         setGuestApiToken(data.guestApiToken)
         setRetailers(data.retailers)
+        setIsDisabled(false)
+    }
+
+    const searchItems = async (e) => {
+        e.preventDefault()
+
+        if (!query.length) return
+    
+        setIsDisabled(true)
+
+        const { data } = await axios.post('/api/search/items', {postalCode, guestApiToken, retailers, query})
+        setItems(data)
+
+        console.log(data)
+
+        setIsDisabled(false)
     }
 
     useEffect(() => {
@@ -22,10 +41,12 @@ export default function Search(props) {
     return (
         <div id="container">
             <div id="border-shadow-wrapper">
-                <div id="search">
-                    <input type="text" placeholder="Search For A Product" value={query} onChange={(e) => setQuery(e.target.value)}/>
-                    <button id="search-icon" type="submit"/>
-                </div>
+                <fieldset disabled={isDisabled}>
+                    <form id="search" onSubmit={searchItems}>
+                        <input type="text" placeholder="Search For A Product" value={query} onChange={(e) => setQuery(e.target.value)}/>
+                        <button id="search-icon" type="submit"/>
+                    </form>
+                </fieldset>
             </div>
         </div>
     )

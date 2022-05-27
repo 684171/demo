@@ -374,13 +374,13 @@ class Instacart {
     }
 
     searchItems = async ({postalCode, guestApiToken, retailers, query}) => {
-        const searchResult = await demo.getProductsMatchingSearch({postalCode, guestApiToken, retailers, query})
+        const searchResult = await this.getProductsMatchingSearch({postalCode, guestApiToken, retailers, query})
 
         return searchResult
     }
 
     searchPrices = async ({productIds, guestApiToken}) => {
-        const productData = await demo.getProductData({productIds, guestApiToken})
+        const productData = await this.getProductData({productIds, guestApiToken})
 
         return productData
     }
