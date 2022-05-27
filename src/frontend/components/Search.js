@@ -4,15 +4,20 @@ import axios from 'axios';
 export default function Search(props) {    
     const { query, setQuery, address, postalCode } = props;
 
+    const [isRegistered, setIsRegistered] = useState(false)
     const [guestApiToken, setGuestApiToken] = useState('')
+    const [retailers, setRetailers] = useState([])
 
     const register = async () => {
-        const { data } = axios.post('/api/register', {address, postalCode})
-        console.log(data)
+        const { data } = await axios.post('/api/register', {address, postalCode})
+        setIsRegistered(true)
         setGuestApiToken(data.guestApiToken)
+        setRetailers(data.retailers)
     }
 
-    useEffect(register, [guestApiToken])
+    useEffect(() => {
+        if (!isRegistered) register()
+    })
     
     return (
         <div id="container">

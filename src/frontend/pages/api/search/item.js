@@ -1,6 +1,6 @@
 const Instacart = require('../../../../backend/instacart')
 
-export default async function handler({req, res}) {
+export default async function handler(req, res) {
     if (req.method !== 'POST') res.status(400).json({err: 'Invalid Request Method'})
     if (!req?.body?.postalCode ||
         !req?.body?.guestApiToken ||
