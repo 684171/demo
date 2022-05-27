@@ -366,29 +366,25 @@ class Instacart {
             }
         })
 
+    register = async ({postalCode, address}) => {
+        const guestApiToken = await this.signupHomepageGuestUser({postalCode, address})
+        const retailers = await this.getAvailableRetailServices({postalCode, guestApiToken})
+        
+        return {guestApiToken, retailers}
+    }
+
+    searchItems = async ({postalCode, guestApiToken, retailers, query}) => {
+        const searchResult = await demo.getProductsMatchingSearch({postalCode, guestApiToken, retailers, query})
+
+        return searchResult
+    }
+
+    searchPrices = async ({productIds, guestApiToken}) => {
+        const productData = await demo.getProductData({productIds, guestApiToken})
+
+        return productData
+    }
+
 }
 
-const main = async () => {
-    const demo = new Instacart({
-        postalCode: 'M5R2A9',
-        address: '1233 Bay Street'
-    });
-
-    const postalCode = 'M5R2A9'
-    const address = '1233 Bay Street'
-    const query = 'tomatoe'
-
-    const guestApiToken = await demo.signupHomepageGuestUser({postalCode, address})
-    const retailers = await demo.getAvailableRetailServices({postalCode, guestApiToken})
-    const searchResult = await demo.getProductsMatchingSearch({postalCode, guestApiToken, retailers, query})
-    
-    const productIds = searchResult.products.splice(5, 6).map(product => product.productId)
-
-    console.log(productIds)
-
-    const productData = await demo.getProductData({productIds, guestApiToken})
-
-    console.log(productData)
-}
-
-main();
+module.exports = Instacart

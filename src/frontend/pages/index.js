@@ -12,7 +12,7 @@ export default function Frugle() {
             <div id="title">Frugle</div>
                {
                   hasValidAddress
-                    ? <Search query={query} setQuery={setQuery}/>
+                    ? <Search query={query} address={address} postalCode={postalCode} setQuery={setQuery}/>
                     : <Address
                         address={address}
                         setAddress={setAddress}

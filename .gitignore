@@ -102,3 +102,4 @@ dist
 
 # TernJS port file
 .tern-port
+src/frontend/pages/_app.js

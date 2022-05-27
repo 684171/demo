@@ -13,6 +13,13 @@
     text-align: center;
 }
 
+@mixin disable-select {
+    user-select: none; /* supported by Chrome and Opera */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */ 
+}
 
 #frugle {
     display: flex;
@@ -21,6 +28,8 @@
 }
 
 #title {
+    @include disable-select();
+    cursor: default;
     margin: 128px 0px 32px;
     font-size: 96px;
     font-weight: bold;
@@ -53,9 +62,9 @@
             padding: 0;
             margin: 0;
             font-size: 16px;
-        
+            outline: none !important;
+
             &:focus, &:focus-visible {
-                outline: none;
                 border: none;
             }
         
