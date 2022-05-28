@@ -35,8 +35,12 @@
     font-weight: bold;
 }
 
-#border-shadow-wrapper {
+@mixin border-shadow {
     box-shadow: 4px 8px 16px 4px color.adjust($search-unfocused-color, $alpha: -0.8);
+}
+
+#border-shadow-wrapper {
+    @include border-shadow();
     border-radius: 4px;
 }
 
@@ -134,8 +138,6 @@
                     }
     
                     #line-two {
-                        font-weight: bold;
-                        margin: 2px 0 0;
                         font-size: 12px;
                         opacity: 80%;
                     }
@@ -157,59 +159,46 @@
     }
 
     #search-results-box {
-        width: 80vw;
-        margin: 32px 0;
+        width: 60%;
+        margin: 32px 0 64px;
         display: flex;
         justify-content: center;
         align-items: center;
         flex-wrap: wrap;
+        
+        #search-result-option {
+            width: 10vw;
+            height: 10vw;
+            padding: 4px;
+            margin: 12px 16px;
+            border: none;
+            background: none;
+            @include border-shadow();
+            border-radius: 8px;
 
-        #search-result-wrapper {
-            width: 20%;
-            height: 20%;
-            margin: 8px;
-            padding: 8px;
-            box-shadow: 4px 8px 16px 4px color.adjust($search-unfocused-color, $alpha: -0.8);
-            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
 
-            #search-result-option {
-                width: 100%;
-                padding: 0;
-                border: none;
-                margin: 0;
-                background: none;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            
+            cursor: pointer;
 
-                #search-result-data {
-                    width: 100%;
-                    display: inline-block;
-                    text-align: center;
-                    
-
-                    a {
-                        text-decoration: none;
-                        #store {
-                            width: 100%;
-                            height: 16px;
-                            font-size: 2em;
-                            color: $text-color;                            
-                        }    
-                    }
-
-                    #name {
-                        width: 100%;
-                        height: 32px;
-                    }
-                }
-                
-                img {
-                    width: 100%;
-                    height: 100%;
-                }
+            #store {
+                font-size: 1.5em;
+                text-align: center;
+            }
+            
+            #name {
+                font-size: 1.25em;
+            }
+            
+            img {
+                width: 75%;
+                height: 75%;
             }
         }
     }

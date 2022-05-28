@@ -55,7 +55,7 @@ export default function Search(props) {
                         {
                             items.map(({name, retailerId, image}) =>
                                 <SearchItem
-                                    key={image}
+                                    key={name + retailerId + image}
                                     name={name}
                                     store={retailers.find(({id}) => retailerId === id)}
                                     image={image}
