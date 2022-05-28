@@ -1,6 +1,7 @@
 const request = require('request')
 const zlib = require('zlib')
 const { v4: uuidv4 } = require('uuid')
+const cheerio = require('cheerio')
 
 class Instacart {
     constructor() {
@@ -108,6 +109,68 @@ class Instacart {
         })
 
     /**
+     * Derives a zone id from a guestApiToken
+     * 
+     * @param {Object} args
+     * @param {string} args.guestApiToken - API token derived from registering as a homepage guest user
+     * 
+     * @returns {string} The zone id
+     */
+    getZoneId = ({guestApiToken}) =>
+        new Promise((resolve, reject) => {
+            try {
+                // Build request
+                request({
+                    url: `https://www.instacart.ca/store`,
+                    method: 'GET',
+                    headers: {
+                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                        'accept-encoding': 'gzip, deflate, br',
+                        'accept-language': 'en-US,en;q=0.9',
+                        'cache-control': 'no-cache',
+                        'pragma': 'no-cache',
+                        'referer': 'https://www.instacart.ca/',
+                        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"',
+                        'sec-ch-ua-mobile': '?0',
+                        'sec-ch-ua-platform': '"Windows"',
+                        'sec-fetch-dest': 'document',
+                        'sec-fetch-mode': 'navigate',
+                        'sec-fetch-site': 'same-origin',
+                        'sec-fetch-user': '?1',
+                        'upgrade-insecure-requests': '1',
+                        'user-agent': this.USER_AGENT,
+                        'cookie': `__Host-instacart_sid=${guestApiToken}` // API auth cookie
+                    },
+                    encoding: null
+                }, (err, res) => {
+                    try {
+                        if (err) throw new Error(err);
+                        else {
+                            if (res.statusCode === 200) {
+                            // Decode encoding if brotli
+                            if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
+
+                            // Extract url encoded JSON from HTML response where the zoneId is kept
+                            const $ = cheerio.load(res.body)
+                            const nodeApolloState = JSON.parse(decodeURIComponent($('#node-apollo-state').text()))
+
+                            const zoneId = nodeApolloState.ROOT_QUERY.lastUserLocation.zoneId
+                        
+                            return resolve(zoneId)
+                            } else throw new Error('Unexpected API response status code: ' + res.statusCode)
+                        }
+                    } catch (err) {
+                        console.error(err)
+                        return reject(err)
+                    }
+                })
+            } catch (err) {
+                console.error(err)
+                return reject(err)
+            }
+        }) 
+
+    /**
      * Gets available retailers from Instacart API, used to derive products from available stores
      * 
      * @param {Object} args
@@ -201,12 +264,13 @@ class Instacart {
      * @param {Object} args
      * @param {string} args.postalCode - Postal code to search
      * @param {string} args.guestApiToken - API token derived from registering as a homepage guest user
+     * @param {string} args.zoneId - Zone id derived from guestApiToken
      * @param {Array.<{id: string, name: string, slug: string, type: string}>} args.retailers - List of retailers to search
      * @param {string} args.query - Query to search
      * 
      * @returns {{showingResultsForString: string, products: Array.<{name: string, retailerId: string, productId: string, image: string}>}} - Products matching search & showing results for string
      */
-     getProductsMatchingSearch = ({postalCode, guestApiToken, retailers, query}) =>
+     getProductsMatchingSearch = ({postalCode, guestApiToken, zoneId, retailers, query}) =>
         new Promise((resolve, reject) => {
             try {
                 // API parameters
@@ -215,7 +279,7 @@ class Instacart {
                     variables: JSON.stringify({
                         "overrideFeatureStates": [],
                         "query": query,
-                        "zoneId": "709",
+                        "zoneId": zoneId,
                         "postalCode": postalCode,
                         "alcoholRetailerIds": [],
                         "nonAlcoholRetailerIds": retailers.map(({id}) => id),
@@ -368,13 +432,14 @@ class Instacart {
 
     register = async ({postalCode, address}) => {
         const guestApiToken = await this.signupHomepageGuestUser({postalCode, address})
+        const zoneId = await this.getZoneId({guestApiToken})
         const retailers = await this.getAvailableRetailServices({postalCode, guestApiToken})
         
-        return {guestApiToken, retailers}
+        return {guestApiToken, zoneId, retailers}
     }
 
-    searchItems = async ({postalCode, guestApiToken, retailers, query}) => {
-        const searchResult = await this.getProductsMatchingSearch({postalCode, guestApiToken, retailers, query})
+    searchItems = async ({postalCode, guestApiToken, zoneId, retailers, query}) => {
+        const searchResult = await this.getProductsMatchingSearch({postalCode, guestApiToken, zoneId, retailers, query})
 
         return searchResult
     }

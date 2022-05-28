@@ -9,6 +9,7 @@ export default function Search(props) {
     const [isDisabled, setIsDisabled] = useState(true)
     const [isRegistered, setIsRegistered] = useState(false)
     const [guestApiToken, setGuestApiToken] = useState('')
+    const [zoneId, setZoneId] = useState([])
     const [retailers, setRetailers] = useState([])
     const [items, setItems] = useState([])
 
@@ -16,6 +17,7 @@ export default function Search(props) {
         const { data } = await axios.post('/api/register', {address, postalCode})
         setIsRegistered(true)
         setGuestApiToken(data.guestApiToken)
+        setZoneId(data.zoneId)
         setRetailers(data.retailers)
         setIsDisabled(false)
     }
@@ -27,7 +29,7 @@ export default function Search(props) {
     
         setIsDisabled(true)
 
-        const { data } = await axios.post('/api/search/items', {postalCode, guestApiToken, retailers, query})
+        const { data } = await axios.post('/api/search/items', {postalCode, guestApiToken, zoneId, retailers, query})
         setItems(data.products)
 
         setIsDisabled(false)
