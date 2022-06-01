@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios';
 import SearchItem from './SearchItem'
+import { v4 as uuidv4 } from 'uuid'
 
 export default function Search(props) {    
     const { address, postalCode } = props;
@@ -30,7 +31,44 @@ export default function Search(props) {
         setIsDisabled(true)
 
         const { data } = await axios.post('/api/search/items', {postalCode, guestApiToken, zoneId, retailers, query})
-        setItems(data.products)
+
+        /**
+         * Sort search results by waterfalling between store products, resulting in the best search results from
+         * a variety of stores at the top, and worse results at the bottom
+         */
+        const productsMappedToStores = data.products.reduce((acc, cur) => {
+            if (!acc[cur.retailerId]) acc[cur.retailerId] = [cur]
+            else acc[cur.retailerId].push(cur)
+            return acc
+        }, {})
+        
+        const retailerIds = Object.keys(productsMappedToStores)
+
+        const retailerCounts = Object.keys(productsMappedToStores).reduce((acc, cur) => {
+            acc[cur] = {
+                products: productsMappedToStores[cur],
+                current: 0,
+            }
+            return acc
+        }, {})
+
+        const products = []
+
+        for (let i = 0, j = 0; i < data.products.length; j === retailerIds.length && (j = 0)) {            
+            const retailerId = retailerIds[j]
+        
+            if (retailerCounts[retailerId].current < retailerCounts[retailerId].products.length) {
+                const productIndex = retailerCounts[retailerId].current
+
+                products.push(retailerCounts[retailerId].products[productIndex])
+                retailerCounts[retailerId].current++
+                i++
+            }
+        
+            j++
+        }
+
+        setItems(products)
 
         setIsDisabled(false)
     }
@@ -55,7 +93,7 @@ export default function Search(props) {
                         {
                             items.map(({name, retailerId, image}) =>
                                 <SearchItem
-                                    key={name + retailerId + image}
+                                    key={uuidv4()}
                                     name={name}
                                     store={retailers.find(({id}) => retailerId === id)}
                                     image={image}
