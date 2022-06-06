@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios';
 import SearchItem from './SearchItem'
+import PriceItem from './PriceItem'
 import { v4 as uuidv4 } from 'uuid'
 
-export default function Search(props) {    
+export default function Search(props) {
     const { address, postalCode } = props;
 
     const [query, setQuery] = useState('')
@@ -13,6 +14,8 @@ export default function Search(props) {
     const [zoneId, setZoneId] = useState([])
     const [retailers, setRetailers] = useState([])
     const [items, setItems] = useState([])
+    const [selectedItems, setSelectedItems] = useState([])
+    const [prices, setPrices] = useState([])
 
     const register = async () => {
         const { data } = await axios.post('/api/register', {address, postalCode})
@@ -68,10 +71,28 @@ export default function Search(props) {
             j++
         }
 
+        setSelectedItems([])
         setItems(products)
-
         setIsDisabled(false)
     }
+
+    const handleSelectItem = (selected, i) => {
+        const items = selectedItems
+
+        if (selected) {
+            const index = items.findIndex((index) => index === i)
+            items.splice(index, 1)
+        } else {
+            items.push(i)
+        }
+
+        setSelectedItems(items)
+    }
+
+    const searchPrices = async (e) => {
+        e.preventDefault()
+    }
+    
 
     useEffect(() => {
         if (!isRegistered) register()
@@ -89,17 +110,37 @@ export default function Search(props) {
             </div>
                 {
                     items.length > 0 &&
-                    <div id="search-results-box">
-                        {
-                            items.map(({name, retailerId, image}) =>
-                                <SearchItem
-                                    key={uuidv4()}
-                                    name={name}
-                                    store={retailers.find(({id}) => retailerId === id)}
-                                    image={image}
-                                />)
-                        }
-                    </div>
+                        <div id="search-results-box">
+                            {
+                                items.map(({name, retailerId, image}, i) =>
+                                    <SearchItem
+                                        onClick={(selected) => handleSelectItem(selected, i)}
+                                        key={uuidv4()}
+                                        name={name}
+                                        store={retailers.find(({id}) => retailerId === id)}
+                                        image={image}
+                                    />)
+                            }
+                        </div>
+                }
+                {
+                    prices.length > 0 &&
+                        <div id="price-results-box">
+                            {
+                                prices
+                                    .sort((a, b) => a.price - b.price)
+                                    .map(({name, retailerId, image, price, rank}) => {
+                                        <PriceItem
+                                            key={uuidv4()}
+                                            name={name}
+                                            store={retailers.find(({id}) => retailerId === id)}
+                                            image={image}
+                                            price={price}
+                                            rank={rank}
+                                        />
+                                    })
+                            }
+                        </div>
                 }
         </div>
     )
