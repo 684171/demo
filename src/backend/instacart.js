@@ -453,10 +453,10 @@ class Instacart {
         const log = {data: [data]}
     
         if (fs.existsSync(SEARCH_LOG_FILE_PATH)) {
-            log.data = {
+            log.data = [
                 ...JSON.parse(fs.readFileSync(SEARCH_LOG_FILE_PATH)).data,
                 ...log.data
-            }
+            ]
         }
 
         fs.writeFileSync(SEARCH_LOG_FILE_PATH, JSON.stringify(log), {encoding: 'utf-8'})

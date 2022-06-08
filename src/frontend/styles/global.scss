@@ -212,6 +212,15 @@
             &.selected {
                 border: 1.5px solid $search-focused-color;
             }
+
+            &.disabled {
+                pointer-events: none;
+                cursor: not-allowed;
+            }
+
+            &.default {
+
+            }
         }
     }
 }

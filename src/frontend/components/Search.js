@@ -72,6 +72,7 @@ export default function Search(props) {
             j++
         }
 
+        setSelectDisabled(false)
         setSelectedItems([])
         setItems(products)
         setIsDisabled(false)
