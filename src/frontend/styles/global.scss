@@ -21,7 +21,7 @@
     -ms-user-select: none; /* Internet Explorer/Edge */ 
 }
 
-@mixin disbale-drag {
+@mixin disable-drag {
     -webkit-user-drag: none;
     -khtml-user-drag: none;
     -moz-user-drag: none;
@@ -206,7 +206,7 @@
             img {
                 width: 75%;
                 height: 75%;
-                @include disabled-drag();              
+                @include disable-drag();              
             }
 
             &.selected {

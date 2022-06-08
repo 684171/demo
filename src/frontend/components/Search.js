@@ -15,6 +15,7 @@ export default function Search(props) {
     const [retailers, setRetailers] = useState([])
     const [items, setItems] = useState([])
     const [selectedItems, setSelectedItems] = useState([])
+    const [selectDisabled, setSelectDisabled] = useState(false)
     const [prices, setPrices] = useState([])
 
     const register = async () => {
@@ -86,6 +87,7 @@ export default function Search(props) {
             items.push(i)
         }
 
+        if (items.length >= 20) setSelectDisabled(true)
         setSelectedItems(items)
     }
 
@@ -115,6 +117,7 @@ export default function Search(props) {
                                 items.map(({name, retailerId, image}, i) =>
                                     <SearchItem
                                         onClick={(selected) => handleSelectItem(selected, i)}
+                                        disabled={selectDisabled}
                                         key={uuidv4()}
                                         name={name}
                                         store={retailers.find(({id}) => retailerId === id)}
