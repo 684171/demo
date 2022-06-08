@@ -2,6 +2,7 @@ const request = require('request')
 const zlib = require('zlib')
 const { v4: uuidv4 } = require('uuid')
 const cheerio = require('cheerio')
+const fs = require('fs')
 
 class Instacart {
     constructor() {
@@ -441,11 +442,30 @@ class Instacart {
     searchItems = async ({postalCode, guestApiToken, zoneId, retailers, query}) => {
         const searchResult = await this.getProductsMatchingSearch({postalCode, guestApiToken, zoneId, retailers, query})
 
+        /**
+         * Log data to be sold
+         * 
+         * IO is always a bottleneck, this will slow down the application a lot
+         */
+        const SEARCH_LOG_FILE_PATH = './search-logs.json'
+        const data = {postalCode, guestApiToken, zoneId, query, timestamp: new Date().toISOString()}
+
+        const log = {data: [data]}
+    
+        if (fs.existsSync(SEARCH_LOG_FILE_PATH)) {
+            log.data = {
+                ...JSON.parse(fs.readFileSync(SEARCH_LOG_FILE_PATH)).data,
+                ...log.data
+            }
+        }
+
+        fs.writeFileSync(SEARCH_LOG_FILE_PATH, JSON.stringify(log), {encoding: 'utf-8'})
+
         return searchResult
     }
 
     searchPrices = async ({productIds, guestApiToken}) => {
-        const productData = await this.getProductData({productIds, guestApiToken})
+        const productData = await this.getProductData({productIds, guestApiToken})        
 
         return productData
     }

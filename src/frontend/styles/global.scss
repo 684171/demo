@@ -21,6 +21,13 @@
     -ms-user-select: none; /* Internet Explorer/Edge */ 
 }
 
+@mixin disbale-drag {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+}
+
 #frugle {
     display: flex;
     flex-wrap: wrap;
@@ -199,10 +206,11 @@
             img {
                 width: 75%;
                 height: 75%;
+                @include disabled-drag();              
             }
 
             &.selected {
-                border: 1px solid green;
+                border: 1.5px solid $search-focused-color;
             }
         }
     }
