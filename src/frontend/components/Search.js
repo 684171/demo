@@ -87,7 +87,11 @@ export default function Search(props) {
             items.push(i)
         }
 
-        if (items.length >= 20) setSelectDisabled(true)
+        if (items.length >= 20) {
+            setSelectDisabled(true)
+        } else if (items.length === 19) setSelectDisabled(false)
+        
+
         setSelectedItems(items)
     }
 
@@ -112,6 +116,7 @@ export default function Search(props) {
             </div>
                 {
                     items.length > 0 &&
+                    <>
                         <div id="search-results-box">
                             {
                                 items.map(({name, retailerId, image}, i) =>
@@ -125,6 +130,13 @@ export default function Search(props) {
                                     />)
                             }
                         </div>
+                        <button
+                            id="search-button"
+                            disabled={!items.length}
+                            onClick={searchPrices}>
+                                {selectDisabled ? `Select up to (${20 - items.length}) more items` : 'Search Prices'}
+                        </button>
+                    </>
                 }
                 {
                     prices.length > 0 &&

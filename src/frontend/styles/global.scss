@@ -56,6 +56,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    font-family: Arial, Helvetica, sans-serif;
 
     fieldset {
         border: none;
@@ -69,7 +70,6 @@
         height: 50px;
         padding: 0px 16px;
         border: none;
-        font-family: Arial, Arial, Helvetica, sans-serif;
         display: flex;
         align-items: center;
     
@@ -195,6 +195,7 @@
             cursor: pointer;
 
             #store {
+                font-weight: bold;
                 font-size: 1.5em;
                 text-align: center;
             }
@@ -222,5 +223,25 @@
 
             }
         }
+    }
+
+    #search-button {
+        width: 12vw;
+        height: 40px;
+        border: none;
+        margin: 0;
+        padding: 0;
+        position: fixed;
+        bottom: 16px;
+        background: $text-input-background-color;
+        color: $text-color;
+        font-size: 1em;
+        text-align: center;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        
+        @include border-shadow();
+        border-radius: 4px;
     }
 }
