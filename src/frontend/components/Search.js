@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import axios from 'axios';
 import SearchItem from './SearchItem'
 import PriceItem from './PriceItem'
-import { v4 as uuidv4 } from 'uuid'
 
 export default function Search(props) {
     const { address, postalCode } = props;
@@ -119,7 +118,7 @@ export default function Search(props) {
                                     <SearchItem
                                         onClick={(selected) => handleSelectItem(selected, i)}
                                         disabled={selectDisabled}
-                                        key={uuidv4()}
+                                        key={name + retailerId + image}
                                         name={name}
                                         store={retailers.find(({id}) => retailerId === id)}
                                         image={image}
@@ -135,7 +134,7 @@ export default function Search(props) {
                                     .sort((a, b) => a.price - b.price)
                                     .map(({name, retailerId, image, price, rank}) => {
                                         <PriceItem
-                                            key={uuidv4()}
+                                            key={name + retailerId + image + price + rank}
                                             name={name}
                                             store={retailers.find(({id}) => retailerId === id)}
                                             image={image}

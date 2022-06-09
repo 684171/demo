@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { useState, useEffect } from 'react'
 import AddressAutocomplete from './AddressAutocomplete'
-import { v4 as uuidv4 } from 'uuid';
 
 export default function Address(props) {    
     const { address, setAddress, setPostalCode, setHasValidAddress } = props
@@ -65,7 +64,7 @@ export default function Address(props) {
                         {
                             autocompletes.map(({lineOne, lineTwo, postalCode}) => 
                                 <AddressAutocomplete
-                                    key={uuidv4()}
+                                    key={lineOne + lineTwo + postalCode}
                                     onClick={() => onAutocompleteAddressClick(lineOne, postalCode)}
                                     lineOne={lineOne}
                                     lineTwo={lineTwo}
