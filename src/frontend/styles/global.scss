@@ -243,5 +243,16 @@
         
         @include border-shadow();
         border-radius: 4px;
+
+        cursor: pointer;
+
+        &:hover {
+            background: $search-button-hover-color
+        }
+
+        &:disabled {
+            background: $text-input-background-color;
+            cursor: not-allowed;
+        }
     }
 }

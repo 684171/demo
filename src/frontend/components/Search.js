@@ -7,7 +7,7 @@ export default function Search(props) {
     const { address, postalCode } = props;
 
     const [query, setQuery] = useState('')
-    const [isDisabled, setIsDisabled] = useState(true)
+    const [searchInputDisabled, setSearchInputDisabled] = useState(true)
     const [isRegistered, setIsRegistered] = useState(false)
     const [guestApiToken, setGuestApiToken] = useState('')
     const [zoneId, setZoneId] = useState([])
@@ -15,6 +15,8 @@ export default function Search(props) {
     const [items, setItems] = useState([])
     const [selectedItems, setSelectedItems] = useState([])
     const [selectDisabled, setSelectDisabled] = useState(false)
+    const [searchButtonText, setSearchButtonText] = useState('')
+    const [searchButtonDisabled, setSearchButtonDisabled] = useState(false)
     const [prices, setPrices] = useState([])
 
     const register = async () => {
@@ -23,7 +25,7 @@ export default function Search(props) {
         setGuestApiToken(data.guestApiToken)
         setZoneId(data.zoneId)
         setRetailers(data.retailers)
-        setIsDisabled(false)
+        setSearchInputDisabled(false)
     }
 
     const searchItems = async (e) => {
@@ -31,7 +33,7 @@ export default function Search(props) {
 
         if (!query.length) return
     
-        setIsDisabled(true)
+        setSearchInputDisabled(true)
 
         const { data } = await axios.post('/api/search/items', {postalCode, guestApiToken, zoneId, retailers, query})
 
@@ -73,8 +75,10 @@ export default function Search(props) {
 
         setSelectDisabled(false)
         setSelectedItems([])
+        setSearchButtonDisabled(true)
+        setSearchButtonText(`Select up to (20) items`)
         setItems(products)
-        setIsDisabled(false)
+        setSearchInputDisabled(false)
     }
 
     const handleSelectItem = (selected, i) => {
@@ -88,8 +92,20 @@ export default function Search(props) {
         }
 
         if (items.length >= 20) {
+            setSearchButtonText('Search Prices')
             setSelectDisabled(true)
-        } else if (items.length === 19) setSelectDisabled(false)
+        } else if (items.length === 19) {
+            setSearchButtonText('Select up to (1) items')
+            setSelectDisabled(false)
+        } else if (!items.length) {
+            setSearchButtonDisabled(true)
+            setSearchButtonText('Select up to (20) items')
+        } else if (items.length === 1) {
+            setSearchButtonDisabled(false)
+            setSearchButtonText('Select up to (19) items')
+        } else {
+            setSearchButtonText(`Select up to (${20 - selectedItems.length}) items`)
+        }
         
 
         setSelectedItems(items)
@@ -107,7 +123,7 @@ export default function Search(props) {
     return (
         <div id="container">
             <div id="border-shadow-wrapper">
-                <fieldset disabled={isDisabled}>
+                <fieldset disabled={searchInputDisabled}>
                     <form id="search" onSubmit={searchItems}>
                         <input type="text" placeholder="Search For A Product" value={query} onChange={(e) => setQuery(e.target.value)}/>
                         <button id="search-icon" type="submit"/>
@@ -132,9 +148,9 @@ export default function Search(props) {
                         </div>
                         <button
                             id="search-button"
-                            disabled={!items.length}
+                            disabled={searchButtonDisabled}
                             onClick={searchPrices}>
-                                {selectDisabled ? `Select up to (${20 - items.length}) more items` : 'Search Prices'}
+                                {searchButtonText}
                         </button>
                     </>
                 }
