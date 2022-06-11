@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import AddressAutocomplete from './AddressAutocomplete'
 
 export default function Address(props) {    
-    const { address, setAddress, setPostalCode, setHasValidAddress } = props
+    const { address, setAddress, setPostalCode, setLatitude, setLongitude, setHasValidAddress } = props
     const [autocompletes, setAutocompletes] = useState([])
     const [inputDisabled, setInputDisabled] = useState(false)
 
@@ -30,11 +30,14 @@ export default function Address(props) {
                 
         const autocompletes = data.data.autocompleteLocations.locations.map(({
             postalCode,
-            viewSection
+            viewSection,
+            coordinates
         }) => ({
             lineOne: viewSection.lineOneString,
             lineTwo: viewSection.lineTwoString,
-            postalCode
+            postalCode,
+            latitude: coordinates.latitude,
+            longitude: coordinates.longitude
         }))
 
         setAutocompletes(autocompletes)
@@ -44,10 +47,12 @@ export default function Address(props) {
         getAutocompleteAddresses()
     }, [address])
 
-    const onAutocompleteAddressClick = (address, postalCode) => {
+    const onAutocompleteAddressClick = (address, postalCode, latitude, longitude) => {
         setInputDisabled(true)
         setAddress(address)
         setPostalCode(postalCode)
+        setLatitude(latitude)
+        setLongitude(longitude)
         setHasValidAddress(true)
     }
 
@@ -62,10 +67,10 @@ export default function Address(props) {
                     autocompletes.length > 0 &&
                         <div id="autocomplete-address-box">
                         {
-                            autocompletes.map(({lineOne, lineTwo, postalCode}) => 
+                            autocompletes.map(({lineOne, lineTwo, postalCode, latitude, longitude}) => 
                                 <AddressAutocomplete
                                     key={lineOne + lineTwo + postalCode}
-                                    onClick={() => onAutocompleteAddressClick(lineOne, postalCode)}
+                                    onClick={() => onAutocompleteAddressClick(lineOne, postalCode, latitude, longitude)}
                                     lineOne={lineOne}
                                     lineTwo={lineTwo}
                                     postalCode={postalCode}

@@ -4,7 +4,7 @@ import SearchItem from './SearchItem'
 import PriceItem from './PriceItem'
 
 export default function Search(props) {
-    const { address, postalCode } = props;
+    const { address, postalCode, latitude, longitude } = props;
 
     const [query, setQuery] = useState('')
     const [searchInputDisabled, setSearchInputDisabled] = useState(true)
@@ -20,13 +20,17 @@ export default function Search(props) {
     const [prices, setPrices] = useState([])
 
     const register = async () => {
-        const { data } = await axios.post('/api/register', {address, postalCode})
+        const { data } = await axios.post('/api/register', {address, postalCode, latitude, longitude})
         setIsRegistered(true)
         setGuestApiToken(data.guestApiToken)
         setZoneId(data.zoneId)
         setRetailers(data.retailers)
         setSearchInputDisabled(false)
     }
+
+    useEffect(() => {
+        console.log(retailers)
+    }, [retailers])
 
     const searchItems = async (e) => {
         e.preventDefault()
