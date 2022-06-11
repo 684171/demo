@@ -113,6 +113,13 @@ export default function Search(props) {
 
     const searchPrices = async (e) => {
         e.preventDefault()
+
+        const { data } = await axios.post('/api/search/prices', {
+            guestApiToken,
+            productIds: items.filter(((_, i) => selectedItems.includes(i))).map((({productId}) => productId))
+        })
+
+        console.log(data)
     }
     
 
