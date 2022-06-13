@@ -10,7 +10,6 @@ export default function Search(props) {
     const [searchInputDisabled, setSearchInputDisabled] = useState(true)
     const [isRegistered, setIsRegistered] = useState(false)
     const [guestApiToken, setGuestApiToken] = useState('')
-    const [zoneId, setZoneId] = useState([])
     const [retailers, setRetailers] = useState([])
     const [items, setItems] = useState([])
     const [selectedItems, setSelectedItems] = useState([])
@@ -23,7 +22,6 @@ export default function Search(props) {
         const { data } = await axios.post('/api/register', {address, postalCode, latitude, longitude})
         setIsRegistered(true)
         setGuestApiToken(data.guestApiToken)
-        setZoneId(data.zoneId)
         setRetailers(data.retailers)
         setSearchInputDisabled(false)
     }
@@ -39,7 +37,7 @@ export default function Search(props) {
     
         setSearchInputDisabled(true)
 
-        const { data } = await axios.post('/api/search/items', {postalCode, guestApiToken, zoneId, retailers, query})
+        const { data } = await axios.post('/api/search/items', {guestApiToken, retailers, query})
 
         /**
          * Sort search results by waterfalling between store products, resulting in the best search results from

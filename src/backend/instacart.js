@@ -1,6 +1,8 @@
 const request = require('request')
 const zlib = require('zlib')
-const { v4: uuidv4 } = require('uuid')
+const {
+    v4: uuidv4
+} = require('uuid')
 const cheerio = require('cheerio')
 const fs = require('fs')
 
@@ -39,7 +41,10 @@ class Instacart {
      * 
      * @returns {string} The guest API token
      */
-    signupHomepageGuestUser = ({postalCode, address}) =>
+    signupHomepageGuestUser = ({
+            postalCode,
+            address
+        }) =>
         new Promise((resolve, reject) => {
             try {
                 // API parameters
@@ -110,68 +115,6 @@ class Instacart {
         })
 
     /**
-     * Derives a zone id from a guestApiToken
-     * 
-     * @param {Object} args
-     * @param {string} args.guestApiToken - API token derived from registering as a homepage guest user
-     * 
-     * @returns {string} The zone id
-     */
-    getZoneId = ({guestApiToken}) =>
-        new Promise((resolve, reject) => {
-            try {
-                // Build request
-                request({
-                    url: `https://www.instacart.ca/store`,
-                    method: 'GET',
-                    headers: {
-                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-                        'accept-encoding': 'gzip, deflate, br',
-                        'accept-language': 'en-US,en;q=0.9',
-                        'cache-control': 'no-cache',
-                        'pragma': 'no-cache',
-                        'referer': 'https://www.instacart.ca/',
-                        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"',
-                        'sec-ch-ua-mobile': '?0',
-                        'sec-ch-ua-platform': '"Windows"',
-                        'sec-fetch-dest': 'document',
-                        'sec-fetch-mode': 'navigate',
-                        'sec-fetch-site': 'same-origin',
-                        'sec-fetch-user': '?1',
-                        'upgrade-insecure-requests': '1',
-                        'user-agent': this.USER_AGENT,
-                        'cookie': `__Host-instacart_sid=${guestApiToken}` // API auth cookie
-                    },
-                    encoding: null
-                }, (err, res) => {
-                    try {
-                        if (err) throw new Error(err);
-                        else {
-                            if (res.statusCode === 200) {
-                            // Decode encoding if brotli
-                            if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
-
-                            // Extract url encoded JSON from HTML response where the zoneId is kept
-                            const $ = cheerio.load(res.body)
-                            const nodeApolloState = JSON.parse(decodeURIComponent($('#node-apollo-state').text()))
-
-                            const zoneId = nodeApolloState.ROOT_QUERY.lastUserLocation.zoneId
-                        
-                            return resolve(zoneId)
-                            } else throw new Error('Unexpected API response status code: ' + res.statusCode)
-                        }
-                    } catch (err) {
-                        console.error(err)
-                        return reject(err)
-                    }
-                })
-            } catch (err) {
-                console.error(err)
-                return reject(err)
-            }
-        })
-
-    /**
      * Gets session tokens for various retailers
      * 
      * @param {Object} args
@@ -182,7 +125,12 @@ class Instacart {
      * 
      * @returns {Array.<{id: string, sessionToken: string}>}
      */
-    getRetailerSessionTokens = ({guestApiToken, postalCode, latitude, longitude}) =>
+    getRetailerSessionTokens = ({
+            guestApiToken,
+            postalCode,
+            latitude,
+            longitude
+        }) =>
         new Promise((resolve, reject) => {
             try {
                 // API parameters
@@ -266,7 +214,10 @@ class Instacart {
      * 
      * @returns {Array.<{id: string, name: string, slug: string, type: string}>} Available retailers
      */
-    getAvailableRetailServices = ({postalCode, guestApiToken}) =>
+    getAvailableRetailServices = ({
+            postalCode,
+            guestApiToken
+        }) =>
         new Promise((resolve, reject) => {
             try {
                 // API parameters
@@ -351,10 +302,15 @@ class Instacart {
      * @param {Object} args - Arguments to get product matching search
      * @param {string} args.guestApiToken - API token derived from registering as a homepage guest user
      * @param {string} args.query - Query to search
+     * @param {string} args.retailer - Retailer to search
      * 
      * @returns 
      */
-    getProductsMatchingSearch = ({guestApiToken, query}) =>
+    searchQueryInStore = ({
+            guestApiToken,
+            query,
+            retailer
+        }) =>
         new Promise((resolve, reject) => {
             try {
                 // API parameters
@@ -363,7 +319,7 @@ class Instacart {
                     variables: JSON.stringify({
                         "filters": [],
                         "disableReformulation": false,
-                        "retailerInventorySessionToken": "v1.b2f16b8.1267332665-M6N4S1-04368x17949-1-462-27449-0",
+                        "retailerInventorySessionToken": retailer.sessionToken,
                         "orderBy": "default",
                         "query": query,
                         "pageViewId": uuidv4(),
@@ -412,7 +368,22 @@ class Instacart {
                                 // Parse response body JSON
                                 const parsedJSON = JSON.parse(res.body)
 
-                                
+                                const searchResults = parsedJSON.data.searchResults.primaryItemResultList.items.map(({
+                                    name,
+                                    legacyV3Id: productId,
+                                    viewSection: {
+                                        itemImage: {
+                                            url: image
+                                        }
+                                    }
+                                }) => ({
+                                    name,
+                                    retailerId: retailer.id,
+                                    productId,
+                                    image
+                                }))
+
+                                return resolve(searchResults)
                             } else throw new Error('Unexpected API response status code: ' + res.statusCode)
                         }
                     } catch (err) {
@@ -430,101 +401,38 @@ class Instacart {
      * Gets products matching a search query
      * 
      * @param {Object} args
-     * @param {string} args.postalCode - Postal code to search
      * @param {string} args.guestApiToken - API token derived from registering as a homepage guest user
-     * @param {string} args.zoneId - Zone id derived from guestApiToken
-     * @param {Array.<{id: string, name: string, slug: string, type: string}>} args.retailers - List of retailers to search
      * @param {string} args.query - Query to search
+     * @param {string} args.retailers - Retailers to search
      * 
-     * @returns {{showingResultsForString: string, products: Array.<{name: string, retailerId: string, productId: string, image: string}>}} - Products matching search & showing results for string
+     * @returns {{products: Array.<{name: string, retailerId: string, productId: string, image: string}>}} - Products matching search & showing results for string
      */
-     getProductsMatchingSearch = ({postalCode, guestApiToken, zoneId, retailers, query}) =>
-        new Promise((resolve, reject) => {
+    getProductsMatchingSearch = ({
+            guestApiToken,
+            query,
+            retailers
+        }) =>
+        new Promise(async (resolve, reject) => {
             try {
-                // API parameters
-                const data = new URLSearchParams({
-                    operationName: "CrossRetailerSearchV2",
-                    variables: JSON.stringify({
-                        "overrideFeatureStates": [],
-                        "query": query,
-                        "zoneId": zoneId,
-                        "postalCode": postalCode,
-                        "alcoholRetailerIds": [],
-                        "nonAlcoholRetailerIds": retailers.map(({id}) => id),
-                        "pickupOnlyRetailerIds": [],
-                        "pageViewId": uuidv4(),
-                        "disableAutocorrect": false,
-                        "includeDebugInfo": false
-                    }),
-                    extensions: JSON.stringify({
-                        "persistedQuery": {
-                            "version": 1,
-                            "sha256Hash": "e68a32e923c4b9b6d84e8bd529b117563ab0da6c76d7068941f67044314e6f02"
-                        }
+                const searchResults = {
+                    products: []
+                }
+
+                const promises = []
+                
+                for (const retailer of retailers) {
+                    const promise = this.searchQueryInStore({
+                        guestApiToken,
+                        query,
+                        retailer
                     })
-                })
 
-                // Build request
-                request({
-                    url: `https://www.instacart.ca/graphql?${data.toString()}`,
-                    method: 'GET',
-                    headers: {
-                        'accept': '*/*',
-                        'accept-encoding': 'gzip, deflate, br',
-                        'accept-language': 'en-US,en;q=0.9',
-                        'cache-control': 'no-cache',
-                        'content-type': 'application/json',
-                        'pragma': 'no-cache',
-                        'referer': 'https://www.instacart.ca/store/s',
-                        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="101", "Google Chrome";v="101"',
-                        'sec-ch-ua-mobile': '?0',
-                        'sec-ch-ua-platform': '"Windows"',
-                        'sec-fetch-dest': 'empty',
-                        'sec-fetch-mode': 'cors',
-                        'sec-fetch-site': 'same-origin',
-                        'user-agent': this.USER_AGENT,
-                        'x-client-identifier': 'web',
-                        'cookie': `__Host-instacart_sid=${guestApiToken}` // API auth cookie
-                    },
-                    encoding: null
-                }, (err, res) => {
-                    try {
-                        if (err) throw new Error(err);
-                        else {
-                            if (res.statusCode === 200) {
-                                // Decode encoding if brotli
-                                if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
+                    promises.push(promise)
+                }
 
-                                // Parse response body JSON
-                                const parsedJSON = JSON.parse(res.body)
-
-                                // Map response to trimmed product data
-                                const products = parsedJSON.data.searchCrossRetailerResultsV2.retailerProducts.map(({
-                                    name,
-                                    retailerId,
-                                    productId,
-                                    viewSection: {
-                                        retailerProductImage: {
-                                            url: image
-                                        }
-                                    }
-                                }) => ({
-                                    name,
-                                    retailerId,
-                                    productId,
-                                    image
-                                }))
-
-                                return resolve({
-                                    showingResultsForString: parsedJSON.data?.searchCrossRetailerResultsV2?.viewSection?.reformulation?.showingResultsForString,
-                                    products
-                                })
-                            } else throw new Error('Unexpected API response status code: ' + res.statusCode)
-                        }
-                    } catch (err) {
-                        console.error(err)
-                        return reject(err)
-                    }
+                Promise.all(promises).then((results) => {
+                    results.forEach((result) => searchResults.products.push(...result))
+                    return resolve(searchResults)
                 })
             } catch (err) {
                 console.error(err)
@@ -539,75 +447,95 @@ class Instacart {
      * @param {String[]} args.productIds - Array of product ids to derive data
      * @param {string} args.guestApiToken - API token derived from registering as a homepage guest user
      */
-    getProductData = ({productIds, guestApiToken}) =>
-        new Promise((resolve, reject) => {
-            try {
-                // API parameters
-                const data = new URLSearchParams({
-                    override_retailer_available_flag: true,
-                    source: 'web'
-                })
+     getProductData = ({
+        productIds,
+        guestApiToken
+    }) =>
+    new Promise((resolve, reject) => {
+        try {
+            // API parameters
+            const data = new URLSearchParams({
+                override_retailer_available_flag: true,
+                source: 'web'
+            })
 
-                const parsedProductIds = productIds.map(productId => `item_${productId}`).join(',')
+            const parsedProductIds = productIds.map(productId => `item_${productId}`).join(',')
 
-                // Build request
-                request({
-                    url: `https://www.instacart.ca/v3/view/item_attributes/${parsedProductIds}?${data.toString()}`,
-                    method: 'GET',
-                    headers: {
-                        'accept': '*/*',
-                        'accept-encoding': 'gzip, deflate, br',
-                        'accept-language': 'en-US,en;q=0.9',
-                        'cache-control': 'no-cache',
-                        'content-type': 'application/json',
-                        'pragma': 'no-cache',
-                        'referer': 'https://www.instacart.ca/store/s',
-                        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="101", "Google Chrome";v="101"',
-                        'sec-ch-ua-mobile': '?0',
-                        'sec-ch-ua-platform': '"Windows"',
-                        'sec-fetch-dest': 'empty',
-                        'sec-fetch-mode': 'cors',
-                        'sec-fetch-site': 'same-origin',
-                        'user-agent': this.USER_AGENT,
-                        'x-client-identifier': 'web',
-                        'cookie': `__Host-instacart_sid=${guestApiToken}` // API auth cookie
-                    },
-                    encoding: null
-                }, (err, res) => {
-                    try {
-                        if (err) throw new Error(err);
-                        else {
-                            if (res.statusCode === 200) {
-                                // Decode encoding if brotli
-                                if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
+            // Build request
+            request({
+                url: `https://www.instacart.ca/v3/view/item_attributes/${parsedProductIds}?${data.toString()}`,
+                method: 'GET',
+                headers: {
+                    'accept': '*/*',
+                    'accept-encoding': 'gzip, deflate, br',
+                    'accept-language': 'en-US,en;q=0.9',
+                    'cache-control': 'no-cache',
+                    'content-type': 'application/json',
+                    'pragma': 'no-cache',
+                    'referer': 'https://www.instacart.ca/store/s',
+                    'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="101", "Google Chrome";v="101"',
+                    'sec-ch-ua-mobile': '?0',
+                    'sec-ch-ua-platform': '"Windows"',
+                    'sec-fetch-dest': 'empty',
+                    'sec-fetch-mode': 'cors',
+                    'sec-fetch-site': 'same-origin',
+                    'user-agent': this.USER_AGENT,
+                    'x-client-identifier': 'web',
+                    'cookie': `__Host-instacart_sid=${guestApiToken}` // API auth cookie
+                },
+                encoding: null
+            }, (err, res) => {
+                try {
+                    if (err) throw new Error(err);
+                    else {
+                        if (res.statusCode === 200) {
+                            // Decode encoding if brotli
+                            if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
 
-                                // Parse response body JSON
-                                const parsedJSON = JSON.parse(res.body)
+                            // Parse response body JSON
+                            const parsedJSON = JSON.parse(res.body)
 
-                                return resolve(parsedJSON.view)
-                            } else throw new Error('Unexpected API response status code: '+  res.statusCode)
-                        }
-                    } catch (err) {
-                        console.error(err)
-                        return reject(err)
+                            return resolve(parsedJSON.view)
+                        } else throw new Error('Unexpected API response status code: ' + res.statusCode)
                     }
-                })
-            } catch (err) {
-                console.error(err)
-                return reject(err)
-            }
-        })
+                } catch (err) {
+                    console.error(err)
+                    return reject(err)
+                }
+            })
+        } catch (err) {
+            console.error(err)
+            return reject(err)
+        }
+    })
 
-    register = async ({postalCode, address, latitude, longitude}) => {
-        const guestApiToken = await this.signupHomepageGuestUser({postalCode, address})
-        const zoneId = await this.getZoneId({guestApiToken})
-        const retailerInfo = await this.getAvailableRetailServices({postalCode, guestApiToken})
-        const retailerSessionTokens = await this.getRetailerSessionTokens({postalCode, guestApiToken, latitude, longitude})
+    register = async ({
+        postalCode,
+        address,
+        latitude,
+        longitude
+    }) => {
+        const guestApiToken = await this.signupHomepageGuestUser({
+            postalCode,
+            address
+        })
+        const retailerInfo = await this.getAvailableRetailServices({
+            postalCode,
+            guestApiToken
+        })
+        const retailerSessionTokens = await this.getRetailerSessionTokens({
+            postalCode,
+            guestApiToken,
+            latitude,
+            longitude
+        })
         const retailers = []
 
         // Concatenate retailer info and retailer sesion tokens
         retailerInfo.forEach((retailer) => {
-            const i = retailerSessionTokens.findIndex(({id}) => id === retailer.id)
+            const i = retailerSessionTokens.findIndex(({
+                id
+            }) => id === retailer.id)
 
             if (i > 0) {
                 retailers.push({
@@ -617,11 +545,22 @@ class Instacart {
             }
         })
 
-        return {guestApiToken, zoneId, retailers}
+        return {
+            guestApiToken,
+            retailers
+        }
     }
 
-    searchItems = async ({postalCode, guestApiToken, zoneId, retailers, query}) => {
-        const searchResult = await this.getProductsMatchingSearch({postalCode, guestApiToken, zoneId, retailers, query})
+    searchItems = async ({
+        guestApiToken,
+        retailers,
+        query
+    }) => {
+        const searchResult = await this.getProductsMatchingSearch({
+            guestApiToken,
+            retailers,
+            query
+        })
 
         /**
          * Log data to be sold
@@ -629,10 +568,16 @@ class Instacart {
          * IO is always a bottleneck, this will slow down the application a lot
          */
         const SEARCH_LOG_FILE_PATH = './search-logs.json'
-        const data = {postalCode, guestApiToken, zoneId, query, timestamp: new Date().toISOString()}
+        const data = {
+            guestApiToken,
+            query,
+            timestamp: new Date().toISOString()
+        }
 
-        const log = {data: [data]}
-    
+        const log = {
+            data: [data]
+        }
+
         if (fs.existsSync(SEARCH_LOG_FILE_PATH)) {
             log.data = [
                 ...JSON.parse(fs.readFileSync(SEARCH_LOG_FILE_PATH)).data,
@@ -640,13 +585,21 @@ class Instacart {
             ]
         }
 
-        fs.writeFileSync(SEARCH_LOG_FILE_PATH, JSON.stringify(log), {encoding: 'utf-8'})
+        fs.writeFileSync(SEARCH_LOG_FILE_PATH, JSON.stringify(log), {
+            encoding: 'utf-8'
+        })
 
         return searchResult
     }
 
-    searchPrices = async ({productIds, guestApiToken}) => {
-        const productData = await this.getProductData({productIds, guestApiToken})        
+    searchPrices = async ({
+        productIds,
+        guestApiToken
+    }) => {
+        const productData = await this.getProductData({
+            productIds,
+            guestApiToken
+        })
 
         return productData
     }
@@ -660,8 +613,23 @@ class Instacart {
 //     const postalCode = 'M4E3J5'
 //     const latitude = '43.6830359'
 //     const longitude = '-79.290861'
+//     const query = 'potato'
 
-//     await instacart.register({postalCode, address, latitude, longitude})    
+//     const {
+//         guestApiToken,
+//         retailers
+//     } = await instacart.register({
+//         postalCode,
+//         address,
+//         latitude,
+//         longitude
+//     })
+
+//     await instacart.searchQueryInStore({
+//         guestApiToken,
+//         query,
+//         retailerSessionToken: retailers[0].sessionToken
+//     })
 // }
 
 // main()
