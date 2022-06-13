@@ -370,7 +370,7 @@ class Instacart {
 
                                 const searchResults = parsedJSON.data.searchResults.primaryItemResultList.items.map(({
                                     name,
-                                    legacyV3Id: productId,
+                                    legacyId: productId,
                                     viewSection: {
                                         itemImage: {
                                             url: image

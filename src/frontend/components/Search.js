@@ -116,6 +116,8 @@ export default function Search(props) {
     const searchPrices = async (e) => {
         e.preventDefault()
 
+        console.log(items.filter(((_, i) => selectedItems.includes(i))).map((({productId}) => productId)))
+
         const { data } = await axios.post('/api/search/prices', {
             guestApiToken,
             productIds: items.filter(((_, i) => selectedItems.includes(i))).map((({productId}) => productId))
@@ -144,11 +146,11 @@ export default function Search(props) {
                     <>
                         <div id="search-results-box">
                             {
-                                items.map(({name, retailerId, image}, i) =>
+                                items.map(({name, retailerId, productId, image}, i) =>
                                     <SearchItem
                                         onClick={(selected) => handleSelectItem(selected, i)}
                                         disabled={selectDisabled}
-                                        key={name + retailerId + image}
+                                        key={productId + i}
                                         name={name}
                                         store={retailers.find(({id}) => retailerId === id)}
                                         image={image}
