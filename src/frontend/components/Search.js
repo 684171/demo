@@ -26,10 +26,6 @@ export default function Search(props) {
         setSearchInputDisabled(false)
     }
 
-    useEffect(() => {
-        console.log(retailers)
-    }, [retailers])
-
     const searchItems = async (e) => {
         e.preventDefault()
 
@@ -108,7 +104,6 @@ export default function Search(props) {
         } else {
             setSearchButtonText(`Select up to (${20 - selectedItems.length}) items`)
         }
-        
 
         setSelectedItems(items)
     }
@@ -116,14 +111,26 @@ export default function Search(props) {
     const searchPrices = async (e) => {
         e.preventDefault()
 
-        console.log(items.filter(((_, i) => selectedItems.includes(i))).map((({productId}) => productId)))
+        setSearchButtonDisabled(true)
 
         const { data } = await axios.post('/api/search/prices', {
             guestApiToken,
             productIds: items.filter(((_, i) => selectedItems.includes(i))).map((({productId}) => productId))
         })
 
-        console.log(data)
+        const prices = data.map(({
+            itemId,
+            pricing: {
+                price
+            }
+        }) => ({
+            price,
+            ...items.find(({productId}) => `item_${productId}` === itemId)
+        }))
+
+        setItems([])
+        setPrices(prices)
+        setSearchButtonDisabled(false)
     }
     
 
@@ -171,16 +178,16 @@ export default function Search(props) {
                             {
                                 prices
                                     .sort((a, b) => a.price - b.price)
-                                    .map(({name, retailerId, image, price, rank}) => {
+                                    .map(({name, retailerId, productId, image, price}, i) => 
                                         <PriceItem
-                                            key={name + retailerId + image + price + rank}
+                                            key={name + retailerId + image + price }
                                             name={name}
                                             store={retailers.find(({id}) => retailerId === id)}
                                             image={image}
                                             price={price}
-                                            rank={rank}
-                                        />
-                                    })
+                                            productId={productId}
+                                            rank={i + 1}
+                                        />)
                             }
                         </div>
                 }

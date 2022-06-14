@@ -212,7 +212,7 @@ class Instacart {
      * @param {string} args.postalCode - Postal code to get relative available store ids
      * @param {string} args.guestApiToken - API token derived from registering as a homepage guest user
      * 
-     * @returns {Array.<{id: string, name: string, slug: string, type: string}>} Available retailers
+     * @returns {Array.<{id: string, name: string, type: string}>} Available retailers
      */
     getAvailableRetailServices = ({
             postalCode,
@@ -278,7 +278,6 @@ class Instacart {
                                     }) => ({
                                         id: retailer.id,
                                         name: retailer.name,
-                                        slug: retailer.slug,
                                         type: retailer.retailerType
                                     }))
 
