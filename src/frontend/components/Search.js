@@ -175,9 +175,9 @@ export default function Search(props) {
                 {
                     prices.length > 0 &&
                         <div id="price-results-box">
-                            {
+                            { 
                                 prices
-                                    .sort((a, b) => a.price - b.price)
+                                    .sort((a, b) => parseFloat(a.price.slice(1, a.price.length)) - parseFloat(b.price.slice(1, b.price.length)))
                                     .map(({name, retailerId, productId, image, price}, i) => 
                                         <PriceItem
                                             key={name + retailerId + image + price }
