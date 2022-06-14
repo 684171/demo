@@ -129,6 +129,10 @@ export default function Search(props) {
         }))
 
         setItems([])
+        
+        // Reset scroll
+        window.scrollTo(0, 0)
+
         setPrices(prices)
         setSearchButtonDisabled(false)
     }

@@ -182,13 +182,15 @@
             background: none;
             @include border-shadow();
             border-radius: 8px;
-
+            
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             
             cursor: pointer;
+            
+            @include disable-select();
 
             #store {
                 width: 100%;
@@ -247,6 +249,8 @@
 
         cursor: pointer;
 
+        @include disable-select();
+
         &:hover {
             background: $search-button-hover-color
         }
@@ -267,7 +271,7 @@
 
         #price-result-option {
             width: 12vw;
-            height: 12vw;
+            height: 100%;
             padding: 16px;
             margin: 12px 16px;
             border: none;
@@ -284,14 +288,14 @@
 
             #store-rank {
                 width: 100%;
+                margin-bottom: 8px;
                 display: flex;
                 justify-content: flex-start;
                 align-items: center;
             }
             
             #rank {
-                width: 10%;
-                padding-right: 16px;
+                padding-right: 4px;
                 font-weight: bold;
                 font-size: 1.5em;
             }
@@ -308,6 +312,7 @@
             
             #name {
                 width: 100%;
+                margin-top: 4px;
                 font-size: 1.25em;
                 text-align: center;
                 white-space: nowrap;
@@ -316,6 +321,7 @@
             }
             
             #price {
+                margin-top: 2.5px;
                 font-size: 1.125em;
                 text-align: center;
             }
