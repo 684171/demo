@@ -363,11 +363,16 @@ class Instacart {
                             if (res.statusCode === 200) {
                                 // Decode encoding if brotli
                                 if (res.headers['content-encoding'] === 'br') res.body = this.decodeBrotliEncoding(res.body)
-
+                                
                                 // Parse response body JSON
                                 const parsedJSON = JSON.parse(res.body)
 
-                                const searchResults = parsedJSON.data.searchResults.primaryItemResultList.items.map(({
+                                // Filter out sponsored results, because they're low quality
+                                const filtered = parsedJSON.data.searchResults.primaryItemResultList.items.filter(({productId}) => {
+                                    return parsedJSON.data.searchResults.primaryItemResultList.featuredProducts.findIndex(featured => featured.productId === productId) === -1
+                                })
+
+                                const searchResults = filtered.map(({
                                     name,
                                     legacyId: productId,
                                     viewSection: {

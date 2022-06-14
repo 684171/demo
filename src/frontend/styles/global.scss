@@ -187,21 +187,26 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
             
             cursor: pointer;
 
             #store {
+                width: 100%;
                 font-weight: bold;
                 font-size: 1.5em;
                 text-align: center;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             
             #name {
+                width: 100%;
                 font-size: 1.25em;
+                text-align: center;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             
             img {
@@ -217,10 +222,6 @@
             &.disabled {
                 pointer-events: none;
                 cursor: not-allowed;
-            }
-
-            &.default {
-
             }
         }
     }
@@ -279,10 +280,6 @@
             align-items: center;
             justify-content: center;
 
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            
             cursor: pointer;
 
             #store-rank {
@@ -291,22 +288,31 @@
                 justify-content: flex-start;
                 align-items: center;
             }
-
+            
             #rank {
+                width: 10%;
+                padding-right: 16px;
                 font-weight: bold;
                 font-size: 1.5em;
-                text-align: left;
             }
-
+            
             #store {
+                width: 90%;
                 font-weight: bold;
                 font-size: 1.5em;
                 text-align: center;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             
             #name {
+                width: 100%;
                 font-size: 1.25em;
                 text-align: center;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             
             #price {
