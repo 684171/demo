@@ -1,3 +1,7 @@
+/**
+ * @author 685701
+ */
+
 export default function PriceItem(props) {
     const { name, store, image, price, rank, productId } = props
 

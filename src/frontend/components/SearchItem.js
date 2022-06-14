@@ -1,3 +1,7 @@
+/**
+ * @author 685701
+ */
+
 import { useState, useEffect } from 'react'
 
 export default function SearchItem(props) {

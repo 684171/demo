@@ -1,3 +1,7 @@
+/**
+ * @author 684171
+ */
+
 import Head from 'next/head'
 import '../styles/global.scss'
 
