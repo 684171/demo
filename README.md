@@ -15,5 +15,5 @@ Follow the steps below to install and run Frugle
 APIs may have been updated since this has been developed
 
 ## Usage
-https://user-images.githubusercontent.com/99058392/183321980-ab270db8-dfd9-42bd-a5d7-05919e04029c.mp4
+[Usage](https://user-images.githubusercontent.com/99058392/183321980-ab270db8-dfd9-42bd-a5d7-05919e04029c.mp4)
 
